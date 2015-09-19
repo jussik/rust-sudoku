@@ -1,12 +1,12 @@
 use std::char;
+use std::mem::size_of;
+
+type Group = [u8; 9];
 
 pub struct Grid {
-    /// values in row-major order
-    row_order: Vec<u8>,
-    /// values in column-major order
-    col_order: Vec<u8>,
-    /// values ordered in groups of 3x3 row major boxes
-    box_order: Vec<u8>
+    rows: [Group; 9],
+    columns: [Group; 9],
+    boxes: [Group; 9]
 }
 
 impl Grid {
@@ -22,26 +22,26 @@ impl Grid {
     pub fn parse(input: &str) -> Option<Grid> {
         let vals = input.chars()
             .filter_map(move |c| c.to_digit(10).map(|v| v as u8))
-            .collect::<Vec<_>>();
+            .collect::<Vec<u8>>();
         if vals.len() != 81 {
             None
         } else {
-            let cols = (0..81)
-                .map(|i| vals[(i / 9)  + (i % 9) * 9])
-                .collect::<Vec<_>>();
-            let boxes = (0..81)
-                .map(|i| vals[i])
-                .collect::<Vec<_>>();
-            Some(Grid {
-                row_order: vals,
-                col_order: cols,
-                box_order: boxes
-            })
+            let mut g = Grid {
+                rows: [[0; 9]; 9],
+                columns: [[0; 9]; 9],
+                boxes: [[0; 9]; 9],
+            };
+            for i in (0..9) {
+                for j in (0..9) {
+                    //g.rows[i][j] = vals[];
+                }
+            }
+            Some(g)
         }
     }
     pub fn to_string(&self) -> String {
         let mut buf = String::with_capacity(241);
-        for (i, v) in self.box_order.iter().enumerate() {
+        /*for (i, v) in self.rows.iter().enumerate() {
             if i % 9 == 0 {
                 if i > 0 {
                     if (i / 9) % 3 == 0 {
@@ -61,7 +61,8 @@ impl Grid {
             } else {
                 buf.push(char::from_digit(*v as u32, 10).unwrap());
             }
-        }
+        }*/
+        println!("{}", size_of::<Grid>() + (81*9));
         buf
     }
 }
