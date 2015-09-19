@@ -1,4 +1,4 @@
-/// Iterates each rows' cell adjacencies
+/// Iterates each row's cell adjacencies
 ///
 /// Emits a tuple of two cell locations
 /// Only emits each pair of cells once, i.e. (3,5) but not (5,3)
@@ -24,7 +24,7 @@ impl Iterator for RowIterator {
         /*
          *  for tgt in (0..81) {
          *      let row = tgt / 9 * 9;
-         *      for adj in (tgt % 9 + 1 .. 9) {
+         *      for adj in (tgt % 9 + 1 ..9) {
          *          yield (tgt, row + adj);
          *      }
          *  }
@@ -47,11 +47,11 @@ impl Iterator for RowIterator {
                     self.new_row = true;
                 } else {
                     // send cell
-                    let tmp_adj = self.adj;
-                    self.adj = self.adj + 1;
-                    return Some((
+                    let val = Some((
                             self.tgt as usize,
-                            (self.row + tmp_adj) as usize));
+                            (self.row + self.adj) as usize));
+                    self.adj = self.adj + 1;
+                    return val;
                 }
             }
         }
