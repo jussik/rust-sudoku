@@ -1,5 +1,4 @@
 use std::char;
-use std::mem;
 
 /// A single cell in a `Grid`
 #[derive(Copy, Clone)]
@@ -39,9 +38,9 @@ impl Grid {
             .filter_map(move |c| c.to_digit(10))
             .take(81)
             .enumerate() {
-                if(v != 0) {
+                if v != 0 {
                     g.values[i].value = v as u8;
-                    g.values[i].possible = 
+                    g.values[i].possible = 1 << v;
                 }
             }
         g
