@@ -21,6 +21,14 @@ impl RowIterator {
 impl Iterator for RowIterator {
     type Item = (usize, usize);
     fn next(&mut self) -> Option<(usize, usize)> {
+        /*
+         *  for tgt in (0..81) {
+         *      let row = tgt / 9 * 9;
+         *      for adj in (tgt % 9 + 1 .. 9) {
+         *          yield (tgt, row + adj);
+         *      }
+         *  }
+         */
         loop {
             if self.new_row {
                 if self.tgt > 80 {

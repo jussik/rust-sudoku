@@ -1,6 +1,7 @@
 use std::char;
 
 use super::row_iterator::RowIterator;
+use super::column_iterator::ColumnIterator;
 
 /// A single cell in a `Grid`
 #[derive(Copy, Clone)]
@@ -92,7 +93,8 @@ impl Grid {
     }
 
     fn update_possible(&mut self) {
-        for (i, j) in RowIterator::new() {
+        for (i, j) in RowIterator::new()
+                .chain(ColumnIterator::new()) {
             let mut cell = self.values[i];
             let mut adj = self.values[j];
             if cell.value != -1 {
