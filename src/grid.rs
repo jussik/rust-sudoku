@@ -20,8 +20,24 @@ impl Cell {
             char::from_digit(self.value as u32 + 1, 10).unwrap()
         }
     }
-    fn remove_possible(&mut self, value: i8) {
-        self.possible = self.possible & !(1 << value);
+    /// Sets the current value, returns `true` if changed
+    fn set(&mut self, value: i8) -> bool {
+        if self.value != -1 {
+            false
+        } else {
+            self.value = value;
+            true
+        }
+    }
+    /// Removes a value from its possibilities, returns `true` if changed
+    fn remove_possible(&mut self, value: i8) -> bool {
+        let bit = 1 << value;
+        if self.possible & bit == 0 {
+            false
+        } else {
+            self.possible &= !bit;
+            true
+        }
     }
 }
 
@@ -91,29 +107,37 @@ impl Grid {
     /// Solve the sudoku puzzle in the current `Grid`
     ///
     /// Returns true if succesful, false otherwise
-    pub fn solve_mut(&mut self) -> bool {
+    fn solve_mut(&mut self) -> bool {
         let (tx, rx) = channel::<Option<Op>>();
 
-        singles::remove_possibles(self, tx.clone());
-        self.apply_ops(&tx, &rx);
-        singles::set_uniques(self, tx.clone());
-        self.apply_ops(&tx, &rx);
+        loop {
+            let mut changed = false;
+            singles::remove_possibles(self, tx.clone());
+            changed |= self.apply_ops(&tx, &rx);
+            singles::set_uniques(self, tx.clone());
+            changed |= self.apply_ops(&tx, &rx);
+            if !changed {
+                break;
+            }
+        }
 
         self.valid
     }
 
     /// Apply all operations received up to this point
-    fn apply_ops(&mut self, tx: &Sender<Option<Op>>, rx: &Receiver<Option<Op>>) {
+    fn apply_ops(&mut self, tx: &Sender<Option<Op>>, rx: &Receiver<Option<Op>>) -> bool {
         tx.send(None).unwrap();
+        let mut changed = false;
         while let Some(op) = rx.recv().unwrap() {
             match op {
                 Op::SetValue(c, v) => {
-                    println!("set value {},{}", c, v);
+                    //println!("set value {},{}", c, v);
                     self.values[c].value = v;
+                    changed |= self.values[c].set(v);
                 },
                 Op::RemovePossible(c, v) => {
                     //println!("remove possible {},{}", c, v);
-                    self.values[c].remove_possible(v);
+                    changed |= self.values[c].remove_possible(v);
                 },
                 Op::Invalidate(s) => {
                     println!("Invalid: {}", s);
@@ -121,6 +145,12 @@ impl Grid {
                 }
             }
         }
+        changed
+    }
+
+    /// Checks if the puzzle has been solved
+    pub fn is_solved(&self) -> bool {
+        self.values.iter().all(|c| c.value != -1)
     }
 
     /// Generate 21x11 ascii table representing the `Grid`
