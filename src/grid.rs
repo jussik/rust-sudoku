@@ -1,5 +1,5 @@
 use std::char;
-use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::mpsc::{channel, Receiver};
 
 use filters::simple;
 
@@ -113,9 +113,9 @@ impl Grid {
         loop {
             let mut changed = false;
             simple::remove_possibles(self, tx.clone());
-            changed |= self.apply_ops(&tx, &rx);
+            changed |= self.apply_ops(&rx);
             simple::set_uniques(self, tx.clone());
-            changed |= self.apply_ops(&tx, &rx);
+            changed |= self.apply_ops(&rx);
             if !changed {
                 break;
             }
@@ -125,8 +125,7 @@ impl Grid {
     }
 
     /// Apply all operations received up to this point
-    fn apply_ops(&mut self, tx: &Sender<Option<Op>>, rx: &Receiver<Option<Op>>) -> bool {
-        tx.send(None).unwrap();
+    fn apply_ops(&mut self, rx: &Receiver<Option<Op>>) -> bool {
         let mut changed = false;
         while let Some(op) = rx.recv().unwrap() {
             match op {

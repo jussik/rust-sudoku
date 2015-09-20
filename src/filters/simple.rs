@@ -12,7 +12,6 @@ pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
         if cell != -1 {
             if cell == adj {
                 send(&tx, Op::Invalidate("duplicate_adjacent"));
-                return;
             } else if adj == -1 {
                 send(&tx, Op::RemovePossible(j, cell));
             }
@@ -20,6 +19,7 @@ pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
             send(&tx, Op::RemovePossible(i, adj));
         }
     }
+    end(&tx);
 }
 /// Set values if no other possibilities exist
 pub fn set_uniques(grid: &Grid, tx: Sender<Option<Op>>) {
@@ -45,7 +45,11 @@ pub fn set_uniques(grid: &Grid, tx: Sender<Option<Op>>) {
             }
         }
     }
+    end(&tx);
 }
 fn send(tx: &Sender<Option<Op>>, op: Op) {
     tx.send(Some(op)).unwrap();
+}
+fn end(tx: &Sender<Option<Op>>) {
+    tx.send(None).unwrap();
 }
