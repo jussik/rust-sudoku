@@ -20,6 +20,9 @@ impl Cell {
             char::from_digit(self.value as u32 + 1, 10).unwrap()
         }
     }
+    fn remove_possible(&mut self, value: i8) {
+        self.possible = self.possible & !(1 << value);
+    }
 }
 
 /// A 9x9 sudoku grid
@@ -32,7 +35,7 @@ pub struct Grid {
 }
 impl Clone for Grid {
     fn clone(&self) -> Self {
-        println!("Grid copy");
+        //println!("Grid copy");
         *self
     }
 }
@@ -89,22 +92,52 @@ impl Grid {
     ///
     /// Returns true if succesful, false otherwise
     pub fn solve_mut(&mut self) -> bool {
-        true
+        self.filter_unique();
+        self.valid
     }
 
     fn update_possible(&mut self) {
         for (i, j) in RowIterator::new()
                 .chain(ColumnIterator::new()) {
-            let mut cell = self.values[i];
-            let mut adj = self.values[j];
-            if cell.value != -1 {
-                if cell.value == adj.value {
+            if let Some((c, v)) = self.get_remove_target(i ,j) {
+                self.values[c].remove_possible(v);
+            }
+        }
+    }
+    fn get_remove_target(&mut self, i: usize, j: usize) -> Option<(usize, i8)> {
+        let cell: &Cell = &self.values[i];
+        let adj: &Cell = &self.values[j];
+        if cell.value != -1 {
+            if cell.value == adj.value {
+                self.valid = false;
+            } else if adj.value == -1 {
+                return Some((j, cell.value))
+            }
+        } else if adj.value != -1 {
+            return Some((i, adj.value))
+        }
+        None
+    }
+
+    fn filter_unique(&mut self) {
+        for cell in self.values.as_mut().into_iter() {
+            if cell.value == -1 {
+                let ones = cell.possible.count_ones();
+                if ones == 1 {
+                    cell.value = match cell.possible {
+                        0x001 => 0,
+                        0x002 => 1,
+                        0x004 => 2,
+                        0x008 => 3,
+                        0x010 => 4,
+                        0x020 => 5,
+                        0x040 => 6,
+                        0x080 => 7,
+                        0x100 => 8,
+                        _ => -1
+                    };
+                } else if ones == 0 {
                     self.valid = false;
-                    return;
-                } else if adj.value != -1 {
-                    // remove from each others' possibles
-                    cell.possible = cell.possible & (1 << adj.value);
-                    adj.possible = adj.possible & (1 << cell.value);
                 }
             }
         }
