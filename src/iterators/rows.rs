@@ -3,9 +3,9 @@
 /// Emits a tuple of two cell locations
 /// Only emits each pair of cells once, i.e. (3,5) but not (5,3)
 pub struct RowIterator {
-    tgt: u32,
-    row: u32,
-    adj: u32,
+    tgt: usize,
+    row: usize,
+    adj: usize,
     new_row: bool
 }
 impl RowIterator {
@@ -43,14 +43,12 @@ impl Iterator for RowIterator {
             } else {
                 if self.adj > 8 {
                     // past last cell in row, check next row
-                    self.tgt = self.tgt + 1;
+                    self.tgt += 1;
                     self.new_row = true;
                 } else {
                     // send cell
-                    let val = Some((
-                            self.tgt as usize,
-                            (self.row + self.adj) as usize));
-                    self.adj = self.adj + 1;
+                    let val = Some((self.tgt, self.row + self.adj));
+                    self.adj += 1;
                     return val;
                 }
             }

@@ -3,9 +3,9 @@
 /// Emits a tuple of two cell locations
 /// Only emits each pair of cells once, i.e. (3,5) but not (5,3)
 pub struct ColumnIterator {
-    tgt: u32,
-    col: u32,
-    row: u32,
+    tgt: usize,
+    col: usize,
+    row: usize,
     new_col: bool
 }
 impl ColumnIterator {
@@ -43,14 +43,12 @@ impl Iterator for ColumnIterator {
             } else {
                 if self.row > 8 {
                     // past last cell in column, go to next
-                    self.tgt = self.tgt + 1;
+                    self.tgt += 1;
                     self.new_col = true;
                 } else {
                     // send cell
-                    let val = Some((
-                            self.tgt as usize,
-                            (self.row * 9 + self.col) as usize));
-                    self.row = self.row + 1;
+                    let val = Some((self.tgt, self.row * 9 + self.col));
+                    self.row += 1;
                     return val;
                 }
             }
