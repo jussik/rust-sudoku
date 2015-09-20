@@ -15,7 +15,6 @@ fn main() {
         005|010|300");
     let solved = grid.solve();
     println!("Start:\n{}", grid.to_string());
-    println!("Valid? {}", grid.is_valid());
     if solved.is_some() {
         println!("Finished:\n{}", solved.unwrap().to_string());
     } else {
