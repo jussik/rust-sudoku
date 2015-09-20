@@ -2,8 +2,8 @@ use ::grid::{Grid, Op};
 use ::iterators::{Rows, Columns, Boxes};
 use std::sync::mpsc::Sender;
 
+/// Remove possibilities based on adjacent values
 pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
-    // remove possibilities based on adjacent values
     for (i, j) in Rows::iter()
             .chain(Columns::iter())
             .chain(Boxes::iter()) {
@@ -21,8 +21,8 @@ pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
         }
     }
 }
+/// Set values if no other possibilities exist
 pub fn set_uniques(grid: &Grid, tx: Sender<Option<Op>>) {
-    // set values if no other possibilities exist
     for (i, cell) in grid.values.iter().enumerate() {
         if cell.value == -1 {
             let ones = cell.possible.count_ones();
