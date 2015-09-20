@@ -1,7 +1,7 @@
 use std::char;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
-use filters::singles;
+use filters::simple;
 
 /// A single cell in a `Grid`
 #[derive(Copy, Clone)]
@@ -112,9 +112,9 @@ impl Grid {
 
         loop {
             let mut changed = false;
-            singles::remove_possibles(self, tx.clone());
+            simple::remove_possibles(self, tx.clone());
             changed |= self.apply_ops(&tx, &rx);
-            singles::set_uniques(self, tx.clone());
+            simple::set_uniques(self, tx.clone());
             changed |= self.apply_ops(&tx, &rx);
             if !changed {
                 break;

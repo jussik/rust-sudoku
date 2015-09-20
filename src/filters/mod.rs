@@ -1,1 +1,1 @@
-pub mod singles;
+pub mod simple;
