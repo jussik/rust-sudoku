@@ -1,6 +1,6 @@
 use ::grid::{Grid, Op};
-use ::row_iterator::RowIterator;
-use ::column_iterator::ColumnIterator;
+use ::iterators::rows::RowIterator;
+use ::iterators::columns::ColumnIterator;
 use std::sync::mpsc::Sender;
 
 pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
