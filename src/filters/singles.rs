@@ -1,11 +1,12 @@
 use ::grid::{Grid, Op};
-use ::iterators::rows::Rows;
-use ::iterators::columns::Columns;
+use ::iterators::{Rows, Columns, Boxes};
 use std::sync::mpsc::Sender;
 
 pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
     // remove possibilities based on adjacent values
-    for (i, j) in Rows::iter().chain(Columns::iter()) {
+    for (i, j) in Rows::iter()
+            .chain(Columns::iter())
+            .chain(Boxes::iter()) {
         let cell = grid.values[i].value;
         let adj = grid.values[j].value;
         if cell != -1 {

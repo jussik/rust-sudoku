@@ -17,7 +17,8 @@ impl Iterator for RowIterator {
     fn next(&mut self) -> Option<(usize, usize)> {
         let it = &mut self.iter;
         if it.step() {
-            Some((it.cell, it.major * 9 + it.minor))
+            let row = it.major * 9;
+            Some((row + it.minor, row + it.minor_adj))
         } else {
             None
         }

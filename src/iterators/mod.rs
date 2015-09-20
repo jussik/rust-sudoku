@@ -1,4 +1,8 @@
+pub use self::rows::*;
+pub use self::columns::*;
+pub use self::boxes::*;
+
 mod base;
-pub mod rows;
-pub mod columns;
-//pub mod boxes;
+mod rows;
+mod columns;
+mod boxes;

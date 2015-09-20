@@ -1,36 +1,42 @@
 pub struct IteratorBase {
-    pub cell: usize,
     pub major: usize,
     pub minor: usize,
-    new_cell: bool
+    pub minor_adj: usize
 }
 impl IteratorBase {
     pub fn new() -> IteratorBase {
         IteratorBase {
-            cell: 0,
             major: 0,
             minor: 0,
-            new_cell: true
+            minor_adj: 0
         }
     }
     pub fn step(&mut self) -> bool {
+        /*  As generator:
+         *  for major in (0..9) {
+         *      for minor in (0..8) {
+         *          for minor_adj in (minor..9) {
+         *              yield;
+         *          }
+         *      }
+         *  }
+        */
         loop {
-            if self.new_cell {
-                if self.cell > 80 {
-                    return false;
-                } else {
-                    self.major = self.cell / 9;
-                    self.minor = self.cell % 9;
-                    self.new_cell = false;
-                }
-            } else {
-                if self.minor >= 8 {
-                    self.cell += 1;
-                    self.new_cell = true;
+            if self.minor_adj >= 8 {
+                if self.minor >= 7 {
+                    if self.major >= 8 {
+                        return false;
+                    }
+                    self.major += 1;
+                    self.minor = 0;
+                    self.minor_adj = 0;
                 } else {
                     self.minor += 1;
-                    return true;
+                    self.minor_adj = self.minor;
                 }
+            } else {
+                self.minor_adj += 1;
+                return true;
             }
         }
     }

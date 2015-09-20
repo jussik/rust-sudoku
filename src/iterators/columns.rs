@@ -1,6 +1,6 @@
 use super::base::IteratorBase;
 
-/// Iterates each row's cell adjacencies
+/// Iterates each column's cell adjacencies
 pub struct Columns;
 impl Columns {
     pub fn iter() -> ColumnIterator {
@@ -17,7 +17,9 @@ impl Iterator for ColumnIterator {
     fn next(&mut self) -> Option<(usize, usize)> {
         let it = &mut self.iter;
         if it.step() {
-            Some(((it.cell % 9) * 9 + it.major, it.minor * 9 + it.major))
+            let cell = it.minor * 9 + it.major;
+            let other = it.minor_adj * 9 + it.major;
+            Some((cell, other))
         } else {
             None
         }
