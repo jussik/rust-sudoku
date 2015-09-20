@@ -37,19 +37,18 @@ impl Iterator for ColumnIterator {
                 } else {
                     // check next column
                     self.col = self.tgt % 9;
-                    self.row = self.tgt / 9 + 1;
+                    self.row = self.tgt / 9;
                     self.new_col = false;
                 }
             } else {
-                if self.row > 8 {
+                if self.row >= 8 {
                     // past last cell in column, go to next
                     self.tgt += 1;
                     self.new_col = true;
                 } else {
                     // send cell
-                    let val = Some((self.tgt, self.row * 9 + self.col));
                     self.row += 1;
-                    return val;
+                    return Some((self.tgt, self.row * 9 + self.col));
                 }
             }
         }

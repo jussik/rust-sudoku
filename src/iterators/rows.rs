@@ -37,19 +37,18 @@ impl Iterator for RowIterator {
                 } else {
                     // check next row
                     self.row = self.tgt / 9 * 9;
-                    self.adj = self.tgt % 9 + 1;
+                    self.adj = self.tgt % 9;
                     self.new_row = false;
                 }
             } else {
-                if self.adj > 8 {
+                if self.adj >= 8 {
                     // past last cell in row, check next row
                     self.tgt += 1;
                     self.new_row = true;
                 } else {
                     // send cell
-                    let val = Some((self.tgt, self.row + self.adj));
                     self.adj += 1;
-                    return val;
+                    return Some((self.tgt, self.row + self.adj));
                 }
             }
         }
