@@ -17,7 +17,7 @@ fn main() {
     println!("Start:\n{}", grid.to_string());
     if solved.is_some() {
         let solved = solved.unwrap();
-        println!("Finished:\n{}", solved.to_string());
+        println!("Finished:\n{}", solved.to_string_xl());
         println!("Done? {}", solved.is_solved());
     } else {
         println!("Not solved!");

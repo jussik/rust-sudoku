@@ -21,6 +21,18 @@ pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
     }
     end(&tx);
 }
+/*pub fn find_hidden(grid: &Grid, tx: Sender<Option<Op>>) {
+    for seg in (0..1) { // 0..9
+        let counts = [0; 9];
+        for c in (0..9) {
+            let cell = grid.values[c];
+            if(cell.value == -1) {
+                println!("{}", cell.possible);
+            }
+        }
+    }
+    end(&tx);
+}*/
 /// Set values if no other possibilities exist
 pub fn set_uniques(grid: &Grid, tx: Sender<Option<Op>>) {
     for (i, cell) in grid.values.iter().enumerate() {

@@ -39,6 +39,9 @@ impl Cell {
             true
         }
     }
+    fn is_possible(&self, value: i8) -> bool {
+        self.possible & (1 << value) != 0
+    }
 }
 
 /// A 9x9 sudoku grid
@@ -114,8 +117,9 @@ impl Grid {
             let mut changed = false;
             simple::remove_possibles(self, tx.clone());
             changed |= self.apply_ops(&rx);
-            simple::set_uniques(self, tx.clone());
-            changed |= self.apply_ops(&rx);
+            //simple::set_uniques(self, tx.clone());
+            //simple::find_hidden(self, tx.clone());
+            //changed |= self.apply_ops(&rx);
             if !changed {
                 break;
             }
@@ -174,5 +178,75 @@ impl Grid {
         }
         buf
     }
-}
 
+    // TODO: move this mess into its own printing module
+    pub fn to_string_xl(&self) -> String {
+        let mut buf = String::new();
+        buf.push('\n');
+        for i in (0..9) {
+            self.divider(i, &mut buf);
+            self.row_to_string(i, &mut buf);
+        }
+        self.divider(0, &mut buf);
+        buf
+    }
+    fn row_to_string(&self, row: usize, buf: &mut String) {
+        let rx = row * 9;
+        for r in (0..3) {
+            for b in (0..3) {
+                let bx = b * 3 + rx;
+                buf.push_str("|");
+                for c in (0..3) {
+                    let cell = self.values[bx + c];
+                    self.cell_row_to_string(&cell, r as u32, buf);
+                }
+            }
+            buf.push('\n');
+        }
+    }
+    fn cell_row_to_string(&self, cell: &Cell, r: u32,
+                          buf: &mut String) {
+        if cell.value == -1 {
+            let x = r * 3;
+            for i in (0..3) {
+                buf.push(' ');
+                let num = i + x;
+                let pos = if cell.is_possible(num as i8) {
+                    char::from_digit(num + 1, 10).unwrap()
+                } else {
+                    ' '
+                };
+                buf.push(pos);
+            }
+            buf.push_str(" |");
+        } else {
+            // split figs into strs and cache
+            let v: Vec<char> = FIGS.chars().collect();
+            buf.push(' ');
+            for i in (1..6) {
+                buf.push(v[(cell.value as usize) * 7
+                         + (r as usize) * 62
+                         + i]);
+            }
+            buf.push_str(" |");
+        }
+    }
+    fn divider(&self, row: usize, buf: &mut String) {
+        if row % 3 == 0 {
+            buf.push_str("\
+                |=======|=======|=======|\
+                |=======|=======|=======|\
+                |=======|=======|=======|");
+        } else {
+            buf.push_str("\
+                |-------|-------|-------|\
+                |-------|-------|-------|\
+                |-------|-------|-------|");
+        }
+        buf.push('\n');
+    }
+}
+const FIGS: &'static str = "\
+|  ,     __     __             __    __     ___    __     __  \
+| /|      _)     _)   |__|    |_    /__       /   (__)   (__\\ \
+|  |     /__    __)      |    __)   \\__)     /    (__)    __/ ";
