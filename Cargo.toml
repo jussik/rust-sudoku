@@ -1,4 +1,8 @@
 [package]
-name = "sudoku"
+name = "sudoku-cli"
 version = "0.1.0"
 authors = ["jk"]
+
+[lib]
+name = "sudoku"
+crate-type = ["rlib", "dylib"]
