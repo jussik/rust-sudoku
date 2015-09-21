@@ -1,4 +1,5 @@
 extern crate sudoku;
+mod ascii_grid;
 
 fn main() {
     let grid = sudoku::Grid::parse("\
@@ -14,10 +15,12 @@ fn main() {
         800|203|009\
         005|010|300");
     let solved = grid.solve();
-    println!("Start:\n{}", grid.to_string());
+    println!("Start:");
+    println!("{}", ascii_grid::create(&grid));
     if solved.is_some() {
+        println!("Finished:");
         let solved = solved.unwrap();
-        println!("Finished:\n{}", solved.to_string_xl());
+        println!("{}", ascii_grid::create_large(&solved));
         println!("Done? {}", solved.is_solved());
     } else {
         println!("Not solved!");
