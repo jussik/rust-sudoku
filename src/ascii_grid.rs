@@ -35,7 +35,7 @@ fn number(value: i8) -> char {
 pub fn create_large(grid: &Grid) -> String {
     let mut printer = GridPrinter {
         grid: grid,
-        buf: String::new()
+        buf: String::with_capacity(2811)
     };
     for i in (0..9) {
         printer.divider(i);
