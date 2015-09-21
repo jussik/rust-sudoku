@@ -20,13 +20,29 @@ impl Cell {
             true
         }
     }
-    /// Removes a value from its possibilities, returns `true` if changed
+    /// Removes a value from its possibilities
+    /// Sets value if only one possibility remains
+    /// Returns `true` if possibilities or value have changed
     fn remove_possible(&mut self, value: i8) -> bool {
         let bit = 1 << value;
-        if self.possible & bit == 0 {
+        if self.possible & bit == 0 || self.value != -1 {
             false
         } else {
             self.possible &= !bit;
+            if self.possible.count_ones() == 1 {
+                self.value =  match self.possible {
+                    0x001 => 0,
+                    0x002 => 1,
+                    0x004 => 2,
+                    0x008 => 3,
+                    0x010 => 4,
+                    0x020 => 5,
+                    0x040 => 6,
+                    0x080 => 7,
+                    0x100 => 8,
+                    _ => -1
+                };
+            }
             true
         }
     }
@@ -85,14 +101,33 @@ impl Grid {
         g
     }
 
-    /// Solve the sudoku puzzle and return the solved `Grid`
+    /// Attempts to solve the puzzle
     ///
-    /// Returns a filled out `Some(Grid)` if successful, `None` otherwise
+    /// Returns a filled out `Grid` when the solver has finished
+    /// Returns `None` if the puzzle is invalid
     pub fn solve(&self) -> Option<Grid> {
         if self.valid {
             let mut g2 = self.clone();
-            if g2.solve_mut() {
+            g2.solve_mut(100);
+            if self.valid {
                 return Some(g2);
+            }
+        }
+        None
+    }
+
+    /// Runs a single iteration of solving the puzzle
+    ///
+    /// Returns a tuple of:
+    /// 1. the iterated `Grid` instance
+    /// 2. a bool which is `true` when the solver has finished
+    /// Returns `None` if the puzzle is invalid
+    pub fn step(&self) -> Option<(Grid, bool)> {
+        if self.valid {
+            let mut g2 = self.clone();
+            let done = g2.solve_mut(1);
+            if self.valid {
+                return Some((g2, done));
             }
         }
         None
@@ -100,23 +135,23 @@ impl Grid {
 
     /// Solve the sudoku puzzle in the current `Grid`
     ///
-    /// Returns true if succesful, false otherwise
-    fn solve_mut(&mut self) -> bool {
+    /// Returns `true` if the solver has finished
+    fn solve_mut(&mut self, iterations: u32) -> bool {
         let (tx, rx) = channel::<Option<Op>>();
-
-        loop {
+        let mut count = iterations;
+        while count > 0 {
             let mut changed = false;
+            
             simple::remove_possibles(self, tx.clone());
-            changed |= self.apply_ops(&rx);
-            //simple::set_uniques(self, tx.clone());
             //simple::find_hidden(self, tx.clone());
-            //changed |= self.apply_ops(&rx);
-            if !changed {
-                break;
-            }
-        }
+            changed |= self.apply_ops(&rx);
 
-        self.valid
+            if !changed {
+                return true
+            }
+            count -= 1;
+        }
+        self.is_solved()
     }
 
     /// Apply all operations received up to this point

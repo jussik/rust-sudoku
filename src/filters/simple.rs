@@ -33,32 +33,6 @@ pub fn remove_possibles(grid: &Grid, tx: Sender<Option<Op>>) {
     }
     end(&tx);
 }*/
-/// Set values if no other possibilities exist
-pub fn set_uniques(grid: &Grid, tx: Sender<Option<Op>>) {
-    for (i, cell) in grid.values.iter().enumerate() {
-        if cell.value == -1 {
-            let ones = cell.possible.count_ones();
-            if ones == 1 {
-                let val = match cell.possible {
-                    0x001 => 0,
-                    0x002 => 1,
-                    0x004 => 2,
-                    0x008 => 3,
-                    0x010 => 4,
-                    0x020 => 5,
-                    0x040 => 6,
-                    0x080 => 7,
-                    0x100 => 8,
-                    _ => -1
-                };
-                send(&tx, Op::SetValue(i, val));
-            } else if ones == 0 {
-                send(&tx, Op::Invalidate("no_possibles"));
-            }
-        }
-    }
-    end(&tx);
-}
 fn send(tx: &Sender<Option<Op>>, op: Op) {
     tx.send(Some(op)).unwrap();
 }
