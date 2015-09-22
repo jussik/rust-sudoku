@@ -18,10 +18,7 @@ pub fn remove_possibles(grid: Vec<Arc<RwLock<Cell>>>) {
                 jval = grid[j].read().unwrap().value;
             }
             if ival != -1 {
-                if ival == jval {
-                    //send(&tx, Op::Invalidate("duplicate_adjacent"));
-                    return;
-                } else if jval == -1 {
+                if jval == -1 {
                     let mut cell = grid[j].write().unwrap();
                     changed |= cell.remove_possible(ival);
                     //send(&tx, Op::RemovePossible(j, ival));
