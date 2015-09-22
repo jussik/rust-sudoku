@@ -70,6 +70,15 @@ impl Clone for Grid {
     }
 }
 
+macro_rules! start_solver {
+    ($func:expr, $data:ident, $handles:ident) => {{
+        let data = $data.clone();
+        $handles.push(thread::spawn(move || {
+            $func(data);
+        }));
+    }}
+}
+
 impl Grid {
     /// Parse a string containing a list of numbers into a `Grid`
     ///
@@ -117,21 +126,21 @@ impl Grid {
 
     /// Solve the sudoku puzzle in the current `Grid`
     fn solve_mut(&mut self) {
-        let vec = self.values.iter()
+        let cells = self.values.iter()
             .map(|cell| Arc::new(RwLock::new(cell.clone())))
             .collect::<Vec<_>>();
+        let mut handles: Vec<thread::JoinHandle<()>> = Vec::new();
 
-        let svec = vec.clone();
-        let handle = thread::spawn(move || {
-            simple::remove_possibles(svec);
-        });
+        start_solver!(simple::rows, cells, handles);
+        start_solver!(simple::columns, cells, handles);
+        start_solver!(simple::boxes, cells, handles);
 
-        handle.join().unwrap();
-        {
-            for i in 0..81 {
-                let cell = vec[i].read().unwrap();
-                self.values[i] = *cell;
-            }
+        for h in handles {
+            h.join().unwrap();
+        }
+        for i in 0..81 {
+            let cell = cells[i].read().unwrap();
+            self.values[i] = *cell;
         }
         self.solved = self.values.iter().all(|c| c.value != -1)
     }
