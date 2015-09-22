@@ -70,12 +70,17 @@ impl Clone for Grid {
     }
 }
 
-macro_rules! start_solver {
-    ($func:expr, $data:ident, $handles:ident) => {{
-        let data = $data.clone();
-        $handles.push(thread::spawn(move || {
-            $func(data);
-        }));
+// $data is data to pass to solver
+// $handlers is vector of JoinHandles to add new threads to
+// $func is a solver function
+macro_rules! start_solvers {
+    ($data:ident, $handles:ident, $($func:expr),*) => {{
+        $(
+            let data = $data.clone();
+            $handles.push(thread::spawn(move || {
+                $func(data);
+            }));
+        )*
     }}
 }
 
@@ -131,9 +136,11 @@ impl Grid {
             .collect::<Vec<_>>();
         let mut handles: Vec<thread::JoinHandle<()>> = Vec::new();
 
-        start_solver!(simple::rows, cells, handles);
-        start_solver!(simple::columns, cells, handles);
-        start_solver!(simple::boxes, cells, handles);
+        start_solvers!(cells, handles,
+            simple::rows,
+            simple::columns,
+            simple::boxes
+        );
 
         for h in handles {
             h.join().unwrap();
