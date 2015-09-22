@@ -1,4 +1,5 @@
 use std::sync::{Arc, RwLock};
+use std::sync::mpsc::Sender;
 use std::vec::Vec;
 use std::thread;
 
@@ -7,24 +8,30 @@ use ::grid::Cell;
 type LocFn = fn(usize, usize) -> usize;
 
 /// Remove possible values based on cells in the same row
-pub fn rows(grid: Vec<Arc<RwLock<Cell>>>) {
-    run(grid, row_loc);
+pub fn rows(grid: Vec<Arc<RwLock<Cell>>>,
+            tx: Sender<()>,
+            is_done: Arc<RwLock<bool>>) {
+    run(grid, row_loc, tx, is_done);
 }
 fn row_loc(major: usize, minor: usize) -> usize {
     major * 9 + minor
 }
 
 /// Remove possible values based on cells in the same column
-pub fn columns(grid: Vec<Arc<RwLock<Cell>>>) {
-    run(grid, col_loc);
+pub fn columns(grid: Vec<Arc<RwLock<Cell>>>,
+               tx: Sender<()>,
+               is_done: Arc<RwLock<bool>>) {
+    run(grid, col_loc, tx, is_done);
 }
 pub fn col_loc(major: usize, minor: usize) -> usize {
     minor * 9 + major
 }
 
 /// Remove possible values based on cells in the same 3x3 box
-pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>) {
-    run(grid, box_loc);
+pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>,
+             tx: Sender<()>,
+             is_done: Arc<RwLock<bool>>) {
+    run(grid, box_loc, tx, is_done);
 }
 fn box_loc(major: usize, minor: usize) -> usize {
     (major % 3) * 3
@@ -34,9 +41,11 @@ fn box_loc(major: usize, minor: usize) -> usize {
 }
 
 /// Remove possibilities based on adjacent values
-fn run(grid: Vec<Arc<RwLock<Cell>>>, func: LocFn) {
+fn run(grid: Vec<Arc<RwLock<Cell>>>,
+       func: LocFn,
+       tx: Sender<()>,
+       is_done: Arc<RwLock<bool>>) {
     loop {
-        let mut changed = false;
         for major in 0..9 {
             for minor in 0..8 {
                 let i = func(major, minor);
@@ -47,20 +56,21 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>, func: LocFn) {
                     if ival != -1 {
                         if jval == -1 {
                             let mut cell = grid[j].write().unwrap();
-                            changed |= cell.remove_possible(ival);
+                            cell.remove_possible(ival);
                             //send(&tx, Op::RemovePossible(j, ival));
                         }
                     } else if jval != -1 {
                         let mut cell = grid[i].write().unwrap();
-                        changed |= cell.remove_possible(jval);
+                        cell.remove_possible(jval);
                         //send(&tx, Op::RemovePossible(i, jval));
                     }
                 }
             }
         }
-        if !changed {
+        tx.send(()).unwrap();
+        thread::yield_now();
+        if *is_done.read().unwrap() {
             return;
         }
-        thread::yield_now();
     }
 }

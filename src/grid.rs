@@ -1,6 +1,7 @@
 use std::thread;
 use std::vec::Vec;
 use std::sync::{Arc, RwLock};
+use std::sync::mpsc::channel;
 
 use filters::simple;
 
@@ -74,11 +75,13 @@ impl Clone for Grid {
 // $handlers is vector of JoinHandles to add new threads to
 // $func is a solver function
 macro_rules! start_solvers {
-    ($data:ident, $handles:ident, $($func:expr),*) => {{
+    ($data:ident, $handles:ident, $tx:ident, $st:ident, $($func:expr),*) => {{
         $(
             let data = $data.clone();
+            let tx = $tx.clone();
+            let st = $st.clone();
             $handles.push(thread::spawn(move || {
-                $func(data);
+                $func(data, tx, st);
             }));
         )*
     }}
@@ -134,21 +137,48 @@ impl Grid {
         let cells = self.values.iter()
             .map(|cell| Arc::new(RwLock::new(cell.clone())))
             .collect::<Vec<_>>();
+        let is_done = Arc::new(RwLock::new(false));
         let mut handles: Vec<thread::JoinHandle<()>> = Vec::new();
+        let (tx, rx) = channel::<()>();
 
-        start_solvers!(cells, handles,
+        start_solvers!(cells, handles, tx, is_done,
             simple::rows,
             simple::columns,
             simple::boxes
         );
 
-        for h in handles {
-            h.join().unwrap();
+        let mut done = false;
+        for _ in 0..100 {
+            rx.recv().unwrap();
+            done = true;
+            for i in 0..81 {
+                if cells[i].read().unwrap().value == -1 {
+                    done = false;
+                    break;
+                }
+            }
+            if done {
+                let mut d = is_done.write().unwrap();
+                *d = true;
+                break;
+            }
+            while let Ok(_) = rx.try_recv() {
+                // swallow pings received during count
+            }
         }
+        self.solved = done;
+        if !done {
+            // tell threads to stop
+            let mut d = is_done.write().unwrap();
+            *d = true;
+        }
+
         for i in 0..81 {
             let cell = cells[i].read().unwrap();
             self.values[i] = *cell;
         }
-        self.solved = self.values.iter().all(|c| c.value != -1)
+        for h in handles {
+            h.join().unwrap();
+        }
     }
 }
