@@ -2,10 +2,11 @@ use std::sync::{Arc, RwLock};
 use std::vec::Vec;
 use std::thread;
 
-use ::grid::{Cell};
+use ::grid::Cell;
 
 type LocFn = fn(usize, usize) -> usize;
 
+/// Remove possible values based on cells in the same row
 pub fn rows(grid: Vec<Arc<RwLock<Cell>>>) {
     run(grid, row_loc);
 }
@@ -13,6 +14,7 @@ fn row_loc(major: usize, minor: usize) -> usize {
     major * 9 + minor
 }
 
+/// Remove possible values based on cells in the same column
 pub fn columns(grid: Vec<Arc<RwLock<Cell>>>) {
     run(grid, col_loc);
 }
@@ -20,6 +22,7 @@ pub fn col_loc(major: usize, minor: usize) -> usize {
     minor * 9 + major
 }
 
+/// Remove possible values based on cells in the same 3x3 box
 pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>) {
     run(grid, box_loc);
 }
