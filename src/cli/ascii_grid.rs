@@ -1,5 +1,5 @@
 use std::char;
-use sudoku::{Grid, Cell};
+use sudoku::grid::{Grid, Cell};
 
 /// Generate 21x11 ascii table representing the `Grid`
 pub fn create(grid: &Grid) -> String {
