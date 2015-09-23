@@ -45,16 +45,12 @@ macro_rules! start_solvers {
         [ $func:expr ]
         ( $($arg:ident),* )
         -> $handles:ident
-     ) => {
-        {
-            $(
-                let $arg = $arg.clone();
-            )*
-            $handles.push(thread::spawn(move || {
-                $func($($arg),*);
-            }));
-        }
-    };
+     ) => {{
+        $( let $arg = $arg.clone(); )*
+        $handles.push(thread::spawn(move || {
+            $func($($arg),*);
+        }));
+    }};
 }
 
 impl Grid {
