@@ -25,24 +25,36 @@ impl Clone for Grid {
     }
 }
 
-// $func is a solver function
-// $arg is clonable data to pass to solver
-// $handlers is vector of JoinHandles to add new threads to
+/// Start a number of solvers in threads and pass them cloned arguments
+///
+/// $func is a solver function
+/// $arg is clonable data to pass to solver
+/// $handles is vector of JoinHandles to add new threads to
+///
+/// e.g. `start_solvers!([fn1, fn2, fn3](arg1, arg2) -> handles);`
 macro_rules! start_solvers {
     (
-        [ $($func:expr),* ]
-        ( $cells:ident, $tx:ident, $done:ident )
+        [ $func:expr, $($rest:expr),+ ]
+        ( $($arg:ident),* )
         -> $handles:ident
-     ) => {{
-        $(
-            let cells = $cells.clone();
-            let tx = $tx.clone();
-            let done = $done.clone();
+     ) => {
+        start_solvers!([$func]($($arg),*) -> $handles);
+        start_solvers!([$($rest),+]($($arg),*) -> $handles);
+    };
+    (
+        [ $func:expr ]
+        ( $($arg:ident),* )
+        -> $handles:ident
+     ) => {
+        {
+            $(
+                let $arg = $arg.clone();
+            )*
             $handles.push(thread::spawn(move || {
-                $func(cells, tx, done);
+                $func($($arg),*);
             }));
-        )*
-    }}
+        }
+    };
 }
 
 impl Grid {
