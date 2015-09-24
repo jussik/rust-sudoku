@@ -40,8 +40,7 @@ impl Generator {
             }
             vals[i] = -1;
             let grid = Grid::load(&vals);
-            let solved = grid.solve();
-            if !solved.map_or(false, |g| g.solved) {
+            if !grid.solve().map_or(false, |g| g.solved) {
                 return prev;
             }
             prev = grid;
@@ -51,9 +50,7 @@ impl Generator {
     fn gen_values(&mut self) -> [i8; 81] {
         let mut order: [usize; 9] = [0,1,2,3,4,5,6,7,8];
 
-        self.rng.shuffle(&mut order[0..3]);
-        self.rng.shuffle(&mut order[3..6]);
-        self.rng.shuffle(&mut order[6..9]);
+        self.shuffle(&mut order);
         let mut vals: [i8; 81] = [0; 81];
         // shuffle columns within their groups
         for x in 0..9 {
@@ -64,9 +61,7 @@ impl Generator {
             }
         }
 
-        self.rng.shuffle(&mut order[0..3]);
-        self.rng.shuffle(&mut order[3..6]);
-        self.rng.shuffle(&mut order[6..9]);
+        self.shuffle(&mut order);
         let mut vals2: [i8; 81] = [0; 81];
         // shuffle rows within their groups
         for x in 0..9 {
@@ -77,5 +72,12 @@ impl Generator {
             }
         }
         vals2
+    }
+
+    fn shuffle(&mut self, order: &mut [usize; 9]) {
+        for i in 0..3 {
+            let j = i * 3;
+            self.rng.shuffle(&mut order[j..j + 3]);
+        }
     }
 }
