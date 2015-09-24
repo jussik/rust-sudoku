@@ -6,3 +6,6 @@ authors = ["jk"]
 [lib]
 name = "sudoku"
 crate-type = ["rlib", "dylib"]
+
+[dependencies]
+rand = "0.3"

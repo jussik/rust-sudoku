@@ -16,7 +16,7 @@ pub struct Grid {
     /// Whether or not this is a valid puzzle
     valid: bool,
     /// Whether or not this puzzle is solved
-    solved: bool
+    pub solved: bool
 }
 impl Clone for Grid {
     fn clone(&self) -> Self {
@@ -62,14 +62,7 @@ impl Grid {
     /// If less than 81 values are found, the remainder are unknown
     /// Values after the 81st are ignored
     pub fn parse(input: &str) -> Grid {
-        let mut g = Grid {
-            values: [Cell {
-                value: -1,
-                possible: (1 << 9) - 1
-            }; 81],
-            valid: true,
-            solved: false
-        };
+        let mut g = Grid::new();
         for (i, d) in input.chars()
             .filter_map(move |c| c.to_digit(10))
             .take(81)
@@ -81,6 +74,29 @@ impl Grid {
                 }
             }
         g
+    }
+
+    pub fn load(values: &[i8; 81]) -> Grid {
+        let mut g = Grid::new();
+        for i in 0..81 {
+            let v = values[i];
+            if v != -1 {
+                g.values[i].value = v;
+                g.values[i].possible = 1 << v;
+            }
+        }
+        g
+    }
+
+    fn new() -> Grid {
+        Grid {
+            values: [Cell {
+                value: -1,
+                possible: (1 << 9) - 1
+            }; 81],
+            valid: true,
+            solved: false
+        }
     }
 
     /// Attempts to solve the puzzle
