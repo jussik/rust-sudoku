@@ -3,6 +3,9 @@ use std::sync::mpsc::Sender;
 use std::vec::Vec;
 use std::thread;
 
+use rand;
+use rand::{XorShiftRng,Rng};
+
 use ::grid::Cell;
 
 type LocFn = fn(usize, usize) -> usize;
@@ -45,9 +48,21 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
        func: LocFn,
        tx: Sender<()>,
        is_done: Arc<RwLock<bool>>) {
+    let mut rng: XorShiftRng = rand::random();
+
+    let mut ix_major: [usize; 9] = [0; 9];
+    for i in 0..9 { ix_major[i] = i; }
+    rng.shuffle(&mut ix_major);
+
+    let mut ix_minor: [usize; 8] = [0; 8];
+    for i in 0..8 { ix_minor[i] = i; }
+    rng.shuffle(&mut ix_minor);
+
     loop {
-        for major in 0..9 {
-            for minor in 0..8 {
+        for x in 0..9 {
+            let major = ix_major[x]; // iterating arrays emits refs, need value
+            for y in 0..8 {
+                let minor = ix_minor[y];
                 let i = func(major, minor);
                 let ival = grid[i].read().unwrap().value;
                 for minor_adj in minor + 1..9 {
