@@ -5,8 +5,8 @@ use std::sync::mpsc::Sender;
 use std::vec::Vec;
 use std::thread;
 
-use rand;
-use rand::{XorShiftRng,Rng};
+//use rand;
+//use rand::{XorShiftRng,Rng};
 
 use ::grid::Cell;
 
@@ -37,35 +37,33 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
        tx: Sender<bool>,
        is_done: Arc<RwLock<bool>>) {
     // randomise walk order to minimise successive waits for other threads
-    let mut rng: XorShiftRng = rand::random();
+    /*let mut rng: XorShiftRng = rand::random();
 
     let mut ix_major: [usize; 9] = [0; 9];
     for i in 0..9 { ix_major[i] = i; }
-    //rng.shuffle(&mut ix_major);
+    rng.shuffle(&mut ix_major);
 
     let mut ix_minor: [usize; 8] = [0; 8];
     for i in 0..8 { ix_minor[i] = i; }
-    //rng.shuffle(&mut ix_minor);
+    rng.shuffle(&mut ix_minor);*/
 
     loop {
         let mut changed = false;
-        for x in 0..9 {
-            let major = ix_major[x]; // iterating arrays emits refs, need value
-            for y in 0..8 {
-                let minor = ix_minor[y];
+        for major in 0..9 {
+            //let major = ix_major[x]; // iterating arrays emits refs, need value
+            for minor in 0..8 {
+                //let minor = ix_minor[y];
                 let i = func(major, minor);
-                let mut ci;
+                let ci;
                 {
                     ci = *grid[i].read().unwrap();
                 }
-                let ival = ci.value;
                 for minor_adj in minor + 1..9 {
                     let j = func(major, minor_adj);
-                    let mut cj;
+                    let cj;
                     {
                         cj = *grid[j].read().unwrap();
                     }
-                    let jval = cj.value;
                     if ci.value != -1 {
                         if cj.value == -1 && cj.is_possible(ci.value) {
                             let mut cell = grid[j].write().unwrap();

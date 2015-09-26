@@ -5,8 +5,8 @@ use std::sync::mpsc::Sender;
 use std::vec::Vec;
 use std::thread;
 
-use rand;
-use rand::{XorShiftRng,Rng};
+//use rand;
+//use rand::{XorShiftRng,Rng};
 
 use ::grid::Cell;
 
@@ -30,22 +30,21 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
        func: LocFn,
        tx: Sender<bool>,
        is_done: Arc<RwLock<bool>>) {
-    let mut rng: XorShiftRng = rand::random();
+    /*let mut rng: XorShiftRng = rand::random();
     let mut ix_major: [usize; 9] = [0; 9];
     for i in 0..9 { ix_major[i] = i; }
-    //rng.shuffle(&mut ix_major);
+    rng.shuffle(&mut ix_major);*/
 
     let mut poss: [u16; 9] = [0; 9];
     loop {
         let mut changed = false;
-        for x in 0..9 {
+        for major in 0..9 {
             //let major = ix_major[x];
-            let major = x;
             let mut any = 0; // bit is 1 if any cells have that possibility
             let mut ovr = 0; // bit is 1 once a second cell has it
             for minor in 0..9 {
                 let i = func(major, minor);
-                let mut cell;
+                let cell;
                 {
                     cell = *grid[i].read().unwrap();
                 }
