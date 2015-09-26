@@ -127,11 +127,13 @@ impl Solver {
                 simple::rows(args.clone());
                 simple::columns(args.clone());
                 simple::boxes(args.clone());
-                hidden::rows(args.clone());
-                hidden::columns(args.clone());
-                hidden::boxes(args.clone());
-                locked::rows(args.clone());
-                locked::columns(args.clone());
+                //hidden::rows(args.clone());
+                //hidden::columns(args.clone());
+                //hidden::boxes(args.clone());
+                //locked::rows(args.clone());
+                //locked::columns(args.clone());
+                //locked::box_rows(args.clone());
+                locked::col_rows(args.clone());
 
                 done = true;
                 for i in 0..81 {
@@ -149,6 +151,7 @@ impl Solver {
                 for _ in 0..4 {
                     changed |= rx.recv().unwrap();
                 }
+                break;
                 if !changed {
                     println!("gave up after {} iterations", i);
                     break;
