@@ -46,7 +46,6 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
     let mut ix_minor: [usize; 8] = [0; 8];
     for i in 0..8 { ix_minor[i] = i; }
     //rng.shuffle(&mut ix_minor);
-    let id = rng.next_u32() as u16;
 
     loop {
         for x in 0..9 {

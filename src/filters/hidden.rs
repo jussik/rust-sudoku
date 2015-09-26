@@ -44,22 +44,23 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
             let mut ovr = 0; // bit is 1 once a second cell has it
             for minor in 0..9 {
                 let i = func(major, minor);
-                let mut pos;
+                let mut cell;
                 {
-                    let cell = grid[i].read().unwrap();
-                    if cell.value != -1 {
-                        poss[minor] = 0;
-                        continue;
-                    }
-                    pos = cell.possible;
+                    cell = grid[i].read().unwrap();
                 }
-                poss[minor] = pos;
-                ovr |= any & pos;
+                let pos = cell.possible;
+                if cell.value != -1 {
+                    // value already exists, take it out of contention
+                    poss[minor] = 0;
+                    ovr |= pos;
+                } else {
+                    poss[minor] = pos;
+                    ovr |= any & pos;
+                }
                 any |= pos;
             }
             let uniqs = any ^ ovr;
             if uniqs != 0 {
-                //println!("{:09b}", uniqs);
                 // there are bits in any that are not in ovr
                 // second pass, find cells with unique possibles
                 for minor in 0..9 {
@@ -70,8 +71,6 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
                         let mut cell = grid[i].write().unwrap();
                         cell.possible = p;
                         cell.check_possible();
-                        //println!("{:09b} in {},{} ({}) for {}",
-                        //p, major, minor, i, cell.value + 1);
                     }
                 }
             }
