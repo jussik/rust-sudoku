@@ -1,41 +1,27 @@
 use super::*;
 
-use std::sync::{Arc, RwLock};
-use std::sync::mpsc::Sender;
-use std::vec::Vec;
 use std::thread;
 
 //use rand;
 //use rand::{XorShiftRng,Rng};
 
-use ::grid::Cell;
-
 /// Remove possible values based on cells in the same row
-pub fn rows(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<bool>,
-            is_done: Arc<RwLock<bool>>) {
-    run(grid, row_loc, tx, is_done);
+pub fn rows(args: SolverArgs) {
+    run(args, row_loc);
 }
 
 /// Remove possible values based on cells in the same column
-pub fn columns(grid: Vec<Arc<RwLock<Cell>>>,
-               tx: Sender<bool>,
-               is_done: Arc<RwLock<bool>>) {
-    run(grid, col_loc, tx, is_done);
+pub fn columns(args: SolverArgs) {
+    run(args, col_loc);
 }
 
 /// Remove possible values based on cells in the same 3x3 box
-pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>,
-             tx: Sender<bool>,
-             is_done: Arc<RwLock<bool>>) {
-    run(grid, box_loc, tx, is_done);
+pub fn boxes(args: SolverArgs) {
+    run(args, box_loc);
 }
 
 /// Remove possibilities based on adjacent values
-fn run(grid: Vec<Arc<RwLock<Cell>>>,
-       func: LocFn,
-       tx: Sender<bool>,
-       is_done: Arc<RwLock<bool>>) {
+fn run(args: SolverArgs, func: LocFn) {
     // randomise walk order to minimise successive waits for other threads
     /*let mut rng: XorShiftRng = rand::random();
 
@@ -46,6 +32,9 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
     let mut ix_minor: [usize; 8] = [0; 8];
     for i in 0..8 { ix_minor[i] = i; }
     rng.shuffle(&mut ix_minor);*/
+    let grid = args.cells;
+    let tx = args.tx;
+    let is_done = args.is_done;
 
     loop {
         let mut changed = false;

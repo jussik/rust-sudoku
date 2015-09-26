@@ -5,7 +5,7 @@ pub mod locked;
 use std::thread;
 use std::vec::Vec;
 use std::sync::{Arc, RwLock};
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, Sender};
 
 use ::grid::Cell;
 
@@ -56,15 +56,30 @@ pub struct Solver {
     pub parallel: bool
 }
 
+#[derive(Clone)]
+pub struct SolverArgs {
+    cells: Vec<Arc<RwLock<Cell>>>,
+    tx: Sender<bool>,
+    is_done: Arc<RwLock<bool>>
+}
+
 impl Solver {
+    pub fn new(parallel: bool) -> Solver {
+        Solver {
+            parallel: parallel
+        }
+    }
     /// Solve the puzzle in place, returns `true` if successful
     pub fn solve_mut(&self, grid: &mut [Cell; 81]) -> bool {
-        let cells = grid.iter()
-            .map(|cell| Arc::new(RwLock::new(cell.clone())))
-            .collect::<Vec<_>>();
-        let is_done = Arc::new(RwLock::new(false));
         let mut handles: Vec<thread::JoinHandle<()>> = Vec::new();
         let (tx, rx) = channel::<bool>();
+        let args = SolverArgs {
+            cells: grid.iter()
+                .map(|cell| Arc::new(RwLock::new(cell.clone())))
+                .collect::<Vec<_>>(),
+            tx: tx,
+            is_done: Arc::new(RwLock::new(false))
+        };
 
         let mut done = false;
         if self.parallel {
@@ -75,18 +90,18 @@ impl Solver {
                 hidden::rows,
                 hidden::columns,
                 hidden::boxes
-            ](cells, tx, is_done) -> handles);
+            ](args) -> handles);
 
             for _ in 0..1000 {
                 rx.recv().unwrap();
                 for i in 0..81 {
-                    if cells[i].read().unwrap().value == -1 {
+                    if args.cells[i].read().unwrap().value == -1 {
                         done = false;
                         break;
                     }
                 }
                 if done {
-                    let mut d = is_done.write().unwrap();
+                    let mut d = args.is_done.write().unwrap();
                     *d = true;
                     break;
                 }
@@ -96,34 +111,30 @@ impl Solver {
             }
             if !done {
                 // tell threads to stop
-                let mut d = is_done.write().unwrap();
+                let mut d = args.is_done.write().unwrap();
                 *d = true;
             }
 
-            for i in 0..81 {
-                let cell = cells[i].read().unwrap();
-                grid[i] = *cell;
-            }
             for h in handles {
                 h.join().unwrap();
             }
         } else {
             {
-                let mut d = is_done.write().unwrap();
+                let mut d = args.is_done.write().unwrap();
                 *d = true;
             }
             for i in 1..100 {
-                simple::rows(cells.clone(), tx.clone(), is_done.clone());
-                simple::columns(cells.clone(), tx.clone(), is_done.clone());
-                simple::boxes(cells.clone(), tx.clone(), is_done.clone());
-                //hidden::rows(cells.clone(), tx.clone(), is_done.clone());
-                //hidden::columns(cells.clone(), tx.clone(), is_done.clone());
-                //hidden::boxes(cells.clone(), tx.clone(), is_done.clone());
-                locked::rows(cells.clone(), tx.clone(), is_done.clone());
+                simple::rows(args.clone());
+                simple::columns(args.clone());
+                simple::boxes(args.clone());
+                //hidden::rows(args.clone());
+                //hidden::columns(args.clone());
+                //hidden::boxes(args.clone());
+                locked::rows(args.clone());
 
                 done = true;
                 for i in 0..81 {
-                    if cells[i].read().unwrap().value == -1 {
+                    if args.cells[i].read().unwrap().value == -1 {
                         done = false;
                         break;
                     }
@@ -142,10 +153,10 @@ impl Solver {
                     break;
                 }
             }
-            for i in 0..81 {
-                let cell = cells[i].read().unwrap();
-                grid[i] = *cell;
-            }
+        }
+        for i in 0..81 {
+            let cell = args.cells[i].read().unwrap();
+            grid[i] = *cell;
         }
         done
     }

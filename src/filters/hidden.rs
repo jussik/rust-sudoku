@@ -1,39 +1,28 @@
 use super::*;
 
-use std::sync::{Arc, RwLock};
-use std::sync::mpsc::Sender;
-use std::vec::Vec;
 use std::thread;
 
 //use rand;
 //use rand::{XorShiftRng,Rng};
 
-use ::grid::Cell;
-
-pub fn rows(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<bool>,
-            is_done: Arc<RwLock<bool>>) {
-    run(grid, row_loc, tx, is_done);
+pub fn rows(args: SolverArgs) {
+    run(args, row_loc);
 }
-pub fn columns(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<bool>,
-            is_done: Arc<RwLock<bool>>) {
-    run(grid, col_loc, tx, is_done);
+pub fn columns(args: SolverArgs) {
+    run(args, col_loc);
 }
-pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<bool>,
-            is_done: Arc<RwLock<bool>>) {
-    run(grid, box_loc, tx, is_done);
+pub fn boxes(args: SolverArgs) {
+    run(args, box_loc);
 }
 
-fn run(grid: Vec<Arc<RwLock<Cell>>>,
-       func: LocFn,
-       tx: Sender<bool>,
-       is_done: Arc<RwLock<bool>>) {
+fn run(args: SolverArgs, func: LocFn) {
     /*let mut rng: XorShiftRng = rand::random();
     let mut ix_major: [usize; 9] = [0; 9];
     for i in 0..9 { ix_major[i] = i; }
     rng.shuffle(&mut ix_major);*/
+    let grid = args.cells;
+    let tx = args.tx;
+    let is_done = args.is_done;
 
     let mut poss: [u16; 9] = [0; 9];
     loop {

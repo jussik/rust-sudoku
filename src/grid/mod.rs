@@ -73,7 +73,7 @@ impl Grid {
     pub fn solve(&self) -> Option<Grid> {
         if self.valid {
             let mut g2 = self.clone();
-            let solver = Solver { parallel: false };
+            let solver = Solver::new(false);
             solver.solve_mut(&mut g2.values);
             if self.valid {
                 return Some(g2);
