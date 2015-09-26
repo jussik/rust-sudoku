@@ -1,5 +1,6 @@
 pub mod simple;
 pub mod hidden;
+pub mod locked;
 
 use std::thread;
 use std::vec::Vec;
@@ -115,9 +116,10 @@ impl Solver {
                 simple::rows(cells.clone(), tx.clone(), is_done.clone());
                 simple::columns(cells.clone(), tx.clone(), is_done.clone());
                 simple::boxes(cells.clone(), tx.clone(), is_done.clone());
-                hidden::rows(cells.clone(), tx.clone(), is_done.clone());
-                hidden::columns(cells.clone(), tx.clone(), is_done.clone());
-                hidden::boxes(cells.clone(), tx.clone(), is_done.clone());
+                //hidden::rows(cells.clone(), tx.clone(), is_done.clone());
+                //hidden::columns(cells.clone(), tx.clone(), is_done.clone());
+                //hidden::boxes(cells.clone(), tx.clone(), is_done.clone());
+                locked::rows(cells.clone(), tx.clone(), is_done.clone());
 
                 done = true;
                 for i in 0..81 {
@@ -132,7 +134,7 @@ impl Solver {
                 }
 
                 let mut changed = false;
-                for _ in 0..6 {
+                for _ in 0..4 {
                     changed |= rx.recv().unwrap();
                 }
                 if !changed {
