@@ -127,10 +127,11 @@ impl Solver {
                 simple::rows(args.clone());
                 simple::columns(args.clone());
                 simple::boxes(args.clone());
-                //hidden::rows(args.clone());
-                //hidden::columns(args.clone());
-                //hidden::boxes(args.clone());
+                hidden::rows(args.clone());
+                hidden::columns(args.clone());
+                hidden::boxes(args.clone());
                 locked::rows(args.clone());
+                locked::columns(args.clone());
 
                 done = true;
                 for i in 0..81 {
