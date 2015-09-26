@@ -53,17 +53,25 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
             for y in 0..8 {
                 let minor = ix_minor[y];
                 let i = func(major, minor);
-                let ival = grid[i].read().unwrap().value;
+                let mut ci;
+                {
+                    ci = *grid[i].read().unwrap();
+                }
+                let ival = ci.value;
                 for minor_adj in minor + 1..9 {
                     let j = func(major, minor_adj);
-                    let jval = grid[j].read().unwrap().value;
-                    if ival != -1 {
-                        if jval == -1 {
+                    let mut cj;
+                    {
+                        cj = *grid[j].read().unwrap();
+                    }
+                    let jval = cj.value;
+                    if ci.value != -1 {
+                        if cj.value == -1 {
                             let mut cell = grid[j].write().unwrap();
                             cell.remove_possible(ival);
                             //send(&tx, Op::RemovePossible(j, ival));
                         }
-                    } else if jval != -1 {
+                    } else if cj.value != -1 {
                         let mut cell = grid[i].write().unwrap();
                         cell.remove_possible(jval);
                         //send(&tx, Op::RemovePossible(i, jval));

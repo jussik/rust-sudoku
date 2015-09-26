@@ -46,7 +46,7 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
                 let i = func(major, minor);
                 let mut cell;
                 {
-                    cell = grid[i].read().unwrap();
+                    cell = *grid[i].read().unwrap();
                 }
                 let pos = cell.possible;
                 if cell.value != -1 {
