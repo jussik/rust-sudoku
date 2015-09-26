@@ -16,6 +16,17 @@ const SIMPLE: &'static str = "\
 8 0 0 | 2 0 3 | 0 0 9\
 0 0 5 | 0 1 0 | 3 0 0";
 
+const MEDIUM: &'static str = "\
+043080250\
+600000000\
+000001094\
+900004070\
+000608000\
+010200003\
+820500000\
+000000005\
+034090710";
+
 const HARD: &'static str = "\
 800|000|000\
 003|600|000\
@@ -30,7 +41,7 @@ const HARD: &'static str = "\
 090|000|400";
 
 pub fn run() {
-    let grid = Grid::parse(HARD);
+    let grid = Grid::parse(MEDIUM);
     //let grid = Generator::random().generate();
     println!("{}\n", ascii_grid::create(&grid));
     match grid.solve() {

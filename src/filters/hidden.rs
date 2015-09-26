@@ -11,24 +11,24 @@ use rand::{XorShiftRng,Rng};
 use ::grid::Cell;
 
 pub fn rows(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<()>,
+            tx: Sender<bool>,
             is_done: Arc<RwLock<bool>>) {
     run(grid, row_loc, tx, is_done);
 }
 pub fn columns(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<()>,
+            tx: Sender<bool>,
             is_done: Arc<RwLock<bool>>) {
     run(grid, col_loc, tx, is_done);
 }
 pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<()>,
+            tx: Sender<bool>,
             is_done: Arc<RwLock<bool>>) {
     run(grid, box_loc, tx, is_done);
 }
 
 fn run(grid: Vec<Arc<RwLock<Cell>>>,
        func: LocFn,
-       tx: Sender<()>,
+       tx: Sender<bool>,
        is_done: Arc<RwLock<bool>>) {
     let mut rng: XorShiftRng = rand::random();
     let mut ix_major: [usize; 9] = [0; 9];
@@ -37,6 +37,7 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
 
     let mut poss: [u16; 9] = [0; 9];
     loop {
+        let mut changed = false;
         for x in 0..9 {
             //let major = ix_major[x];
             let major = x;
@@ -64,18 +65,18 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
                 // there are bits in any that are not in ovr
                 // second pass, find cells with unique possibles
                 for minor in 0..9 {
-                    let i = func(major, minor);
                     let p = poss[minor] & uniqs;
                     if p != 0 {
                         // cell has unique possible
+                        let i = func(major, minor);
                         let mut cell = grid[i].write().unwrap();
                         cell.possible = p;
-                        cell.check_possible();
+                        changed |= cell.check_possible();
                     }
                 }
             }
         }
-        tx.send(()).unwrap();
+        tx.send(changed).unwrap();
         thread::yield_now();
         if *is_done.read().unwrap() {
             return;

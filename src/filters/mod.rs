@@ -63,7 +63,7 @@ impl Solver {
             .collect::<Vec<_>>();
         let is_done = Arc::new(RwLock::new(false));
         let mut handles: Vec<thread::JoinHandle<()>> = Vec::new();
-        let (tx, rx) = channel::<()>();
+        let (tx, rx) = channel::<bool>();
 
         let mut done = false;
         if self.parallel {
@@ -111,7 +111,7 @@ impl Solver {
                 let mut d = is_done.write().unwrap();
                 *d = true;
             }
-            for i in 0..5 {
+            for i in 0..100 {
                 simple::rows(cells.clone(), tx.clone(), is_done.clone());
                 simple::columns(cells.clone(), tx.clone(), is_done.clone());
                 simple::boxes(cells.clone(), tx.clone(), is_done.clone());
@@ -127,6 +127,16 @@ impl Solver {
                     }
                 }
                 if done {
+                    println!("solved after {} iterations", i);
+                    break;
+                }
+
+                let mut changed = false;
+                for _ in 0..6 {
+                    changed |= rx.recv().unwrap();
+                }
+                if !changed {
+                    println!("gave up after {} iterations", i);
                     break;
                 }
             }

@@ -12,21 +12,21 @@ use ::grid::Cell;
 
 /// Remove possible values based on cells in the same row
 pub fn rows(grid: Vec<Arc<RwLock<Cell>>>,
-            tx: Sender<()>,
+            tx: Sender<bool>,
             is_done: Arc<RwLock<bool>>) {
     run(grid, row_loc, tx, is_done);
 }
 
 /// Remove possible values based on cells in the same column
 pub fn columns(grid: Vec<Arc<RwLock<Cell>>>,
-               tx: Sender<()>,
+               tx: Sender<bool>,
                is_done: Arc<RwLock<bool>>) {
     run(grid, col_loc, tx, is_done);
 }
 
 /// Remove possible values based on cells in the same 3x3 box
 pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>,
-             tx: Sender<()>,
+             tx: Sender<bool>,
              is_done: Arc<RwLock<bool>>) {
     run(grid, box_loc, tx, is_done);
 }
@@ -34,7 +34,7 @@ pub fn boxes(grid: Vec<Arc<RwLock<Cell>>>,
 /// Remove possibilities based on adjacent values
 fn run(grid: Vec<Arc<RwLock<Cell>>>,
        func: LocFn,
-       tx: Sender<()>,
+       tx: Sender<bool>,
        is_done: Arc<RwLock<bool>>) {
     // randomise walk order to minimise successive waits for other threads
     let mut rng: XorShiftRng = rand::random();
@@ -48,6 +48,7 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
     //rng.shuffle(&mut ix_minor);
 
     loop {
+        let mut changed = false;
         for x in 0..9 {
             let major = ix_major[x]; // iterating arrays emits refs, need value
             for y in 0..8 {
@@ -66,20 +67,18 @@ fn run(grid: Vec<Arc<RwLock<Cell>>>,
                     }
                     let jval = cj.value;
                     if ci.value != -1 {
-                        if cj.value == -1 {
+                        if cj.value == -1 && cj.is_possible(ci.value) {
                             let mut cell = grid[j].write().unwrap();
-                            cell.remove_possible(ival);
-                            //send(&tx, Op::RemovePossible(j, ival));
+                            changed |= cell.remove_possible(ci.value);
                         }
-                    } else if cj.value != -1 {
+                    } else if cj.value != -1 && ci.is_possible(cj.value) {
                         let mut cell = grid[i].write().unwrap();
-                        cell.remove_possible(jval);
-                        //send(&tx, Op::RemovePossible(i, jval));
+                        changed |= cell.remove_possible(cj.value);
                     }
                 }
             }
         }
-        tx.send(()).unwrap();
+        tx.send(changed).unwrap();
         thread::yield_now();
         if *is_done.read().unwrap() {
             return;

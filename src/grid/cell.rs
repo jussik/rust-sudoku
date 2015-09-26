@@ -34,8 +34,8 @@ impl Cell {
     }
 
     /// Checks if only one possibility remains and applies that value
-    pub fn check_possible(&mut self) {
-        if self.possible.count_ones() == 1 {
+    pub fn check_possible(&mut self) -> bool {
+        if self.possible.count_ones() == 1 && self.value == -1 {
             self.value = match self.possible {
                 0x001 => 0,
                 0x002 => 1,
@@ -48,6 +48,9 @@ impl Cell {
                 0x100 => 8,
                 _ => -1
             };
+            true
+        } else {
+            false
         }
     }
 }
