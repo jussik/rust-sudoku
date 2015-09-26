@@ -1,7 +1,7 @@
 mod cell;
 pub use self::cell::Cell;
 
-use ::filters::Solver;
+use ::solver::Solver;
 
 /// A 9x9 sudoku grid
 #[derive(Copy)]
