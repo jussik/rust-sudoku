@@ -111,7 +111,7 @@ impl Solver {
                 let mut d = is_done.write().unwrap();
                 *d = true;
             }
-            for i in 0..100 {
+            for i in 1..100 {
                 simple::rows(cells.clone(), tx.clone(), is_done.clone());
                 simple::columns(cells.clone(), tx.clone(), is_done.clone());
                 simple::boxes(cells.clone(), tx.clone(), is_done.clone());
