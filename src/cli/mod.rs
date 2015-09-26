@@ -1,5 +1,6 @@
 mod ascii_grid;
 
+use sudoku::grid::Grid;
 use sudoku::gen::Generator;
 
 const SIMPLE: &'static str = "\
@@ -15,9 +16,22 @@ const SIMPLE: &'static str = "\
 8 0 0 | 2 0 3 | 0 0 9\
 0 0 5 | 0 1 0 | 3 0 0";
 
+const HARD: &'static str = "\
+800|000|000\
+003|600|000\
+070|090|200\
+
+050|007|000\
+000|045|700\
+000|100|030\
+
+001|000|068\
+008|500|010\
+090|000|400";
+
 pub fn run() {
-    //let grid = Grid::parse(SIMPLE);
-    let grid = Generator::random().generate();
+    let grid = Grid::parse(HARD);
+    //let grid = Generator::random().generate();
     println!("{}\n", ascii_grid::create(&grid));
     match grid.solve() {
         Some(grid) => println!("{}", ascii_grid::create_large(&grid)),

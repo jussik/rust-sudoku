@@ -7,6 +7,7 @@ use std::sync::{Arc, RwLock};
 use std::sync::mpsc::channel;
 
 use filters::simple;
+use filters::hidden;
 
 /// A 9x9 sudoku grid
 #[derive(Copy)]
@@ -126,11 +127,14 @@ impl Grid {
         start_solvers!([
             simple::rows,
             simple::columns,
-            simple::boxes
+            simple::boxes,
+            hidden::rows,
+            hidden::columns,
+            //hidden::boxes
         ](cells, tx, is_done) -> handles);
 
         let mut done = false;
-        for _ in 0..100 {
+        for _ in 0..1000 {
             rx.recv().unwrap();
             done = true;
             for i in 0..81 {

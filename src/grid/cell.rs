@@ -25,24 +25,29 @@ impl Cell {
             false
         } else {
             self.possible &= !bit;
-            if self.possible.count_ones() == 1 {
-                self.value = match self.possible {
-                    0x001 => 0,
-                    0x002 => 1,
-                    0x004 => 2,
-                    0x008 => 3,
-                    0x010 => 4,
-                    0x020 => 5,
-                    0x040 => 6,
-                    0x080 => 7,
-                    0x100 => 8,
-                    _ => -1
-                };
-            }
+            self.check_possible();
             true
         }
     }
     pub fn is_possible(&self, value: i8) -> bool {
         self.possible & (1 << value) != 0
+    }
+
+    /// Checks if only one possibility remains and applies that value
+    pub fn check_possible(&mut self) {
+        if self.possible.count_ones() == 1 {
+            self.value = match self.possible {
+                0x001 => 0,
+                0x002 => 1,
+                0x004 => 2,
+                0x008 => 3,
+                0x010 => 4,
+                0x020 => 5,
+                0x040 => 6,
+                0x080 => 7,
+                0x100 => 8,
+                _ => -1
+            };
+        }
     }
 }
