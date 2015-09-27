@@ -1,6 +1,7 @@
 pub mod simple;
 pub mod hidden;
 pub mod locked;
+pub mod naked;
 
 use std::thread;
 use std::vec::Vec;
@@ -140,6 +141,9 @@ impl Solver {
                 locked::columns(args.clone());
                 locked::box_rows(args.clone());
                 locked::col_rows(args.clone());
+                naked::rows(args.clone());
+                naked::columns(args.clone());
+                naked::boxes(args.clone());
 
                 done = true;
                 for i in 0..81 {
@@ -154,7 +158,7 @@ impl Solver {
                 }
 
                 let mut changed = false;
-                for _ in 0..10 {
+                for _ in 0..11 {
                     changed |= rx.recv().unwrap();
                 }
                 if !changed {
