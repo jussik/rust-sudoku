@@ -130,10 +130,10 @@ impl Solver {
                 //hidden::rows(args.clone());
                 //hidden::columns(args.clone());
                 //hidden::boxes(args.clone());
-                //locked::rows(args.clone());
+                locked::rows(args.clone());
                 //locked::columns(args.clone());
                 //locked::box_rows(args.clone());
-                locked::col_rows(args.clone());
+                //locked::col_rows(args.clone());
 
                 done = true;
                 for i in 0..81 {
