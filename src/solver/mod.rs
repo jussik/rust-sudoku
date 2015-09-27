@@ -158,9 +158,10 @@ impl Solver {
                 }
 
                 let mut changed = false;
-                for _ in 0..11 {
+                for _ in 0..13 {
                     changed |= rx.recv().unwrap();
                 }
+                //break;
                 if !changed {
                     println!("gave up after {} iterations", i);
                     break;
