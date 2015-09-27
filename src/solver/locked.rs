@@ -15,22 +15,6 @@ pub fn col_rows(args: SolverArgs) {
     run(args, col_loc, inv_box_loc);
 }
 
-#[test]
-fn inv_box_test() {
-    for maj in 0..9 {
-        for min in 0..9 {
-            print!(" {:2}",box_loc(maj, min));
-        }
-        println!("");
-    }
-    for maj in 0..9 {
-        for min in 0..9 {
-            print!(" {:2}",inv_box_loc(maj, min));
-        }
-        println!("");
-    }
-}
-
 fn run(args: SolverArgs, outer_func: LocFn, inner_func: LocFn) {
     let grid = args.cells;
     let tx = args.tx;
