@@ -3,30 +3,16 @@ use super::*;
 use std::thread;
 
 pub fn rows(args: SolverArgs) {
-    run(args, box_loc, box_loc, row_loc, row_root);
+    run(args, box_loc, row_loc);
 }
-fn row_root(outer_maj: usize, outer_min: usize, inner_maj: usize) -> (usize, usize) {
-    (outer_maj * 3 + inner_maj, outer_min * 3)
-}
-
 pub fn columns(args: SolverArgs) {
-    run(args, box_loc, box_loc, col_loc, col_root);
+    run(args, inv_box_loc, col_loc);
 }
-fn col_root(outer_maj: usize, outer_min: usize, inner_maj: usize) -> (usize, usize) {
-    (outer_min * 3 + inner_maj, outer_maj * 3)
-}
-
 pub fn box_rows(args: SolverArgs) {
-    run(args, row_loc, col_loc, box_loc, row_root);
+    run(args, row_loc, box_loc);
 }
 pub fn col_rows(args: SolverArgs) {
-    run(args, col_loc, row_loc, inv_box_loc, col_root);
-}
-fn inv_box_loc(major: usize, minor: usize) -> usize {
-    (major % 3) * 27
-        + (major / 3) * 3
-        + (minor % 3) * 9
-        + (minor / 3)
+    run(args, col_loc, inv_box_loc);
 }
 
 #[test]
@@ -45,14 +31,7 @@ fn inv_box_test() {
     }
 }
 
-/// (outer major, outer minor, inner major) -> (root major, root minor)
-type LockRootFn = fn(usize, usize, usize) -> (usize, usize);
-
-fn run(args: SolverArgs,
-       outer_func: LocFn,
-       inv_outer_func: LocFn,
-       inner_func: LocFn,
-       root_func: LockRootFn) {
+fn run(args: SolverArgs, outer_func: LocFn, inner_func: LocFn) {
     let grid = args.cells;
     let tx = args.tx;
     let is_done = args.is_done;
@@ -60,15 +39,14 @@ fn run(args: SolverArgs,
     loop {
         for outer_maj in 0..3 {
             for outer_min in 0..3 {
-                println!("\n");
-                let outer = outer_maj * 3 + outer_min;
+                let outer_root = outer_func(outer_maj * 3 + outer_min, 0);
                 // find any values that are only in one row/column of this box
                 let mut poss: [u16; 3] = [0; 3]; // all possibles in each triple
                 let mut values: u16 = 0;
                 for major in 0..3 {
+                    // loop through inner segments, each with 3 cells
                     for minor in 0..3 {
-                        let i = outer_func(outer, 0) + inner_func(major, minor);
-                        println!("i:{}", i);
+                        let i = outer_root + inner_func(major, minor);
                         let cell = *grid[i].read().unwrap();
                         if cell.value == -1 {
                             poss[major] |= cell.possible;
@@ -78,28 +56,25 @@ fn run(args: SolverArgs,
                     }
                 }
                 for major in 0..3 {
-                    // uniq is bits only in poss[major]
                     let uniq = poss[major] & !values
                         & !(poss[(major + 1) % 3] | poss[(major + 2) % 3]);
                     if uniq != 0 {
-                        println!("");
-                        println!("outer {} ({}, {})", outer, outer_maj, outer_min);
-                        println!("uniq {:09b} in inner {}", uniq, major);
-                        println!("outer origin {} i:{}", outer, outer_func(outer, 0));
-                        println!("inner origin {} i:{}", major, inner_func(major, 0));
-                        let (maj_root, min_root) = root_func(outer_maj, outer_min, major);
-                        println!("root ({},{})", maj_root, min_root);
-                        for minor in 3..9 {
-                            //println!("inner ({}, {})", major, minor);
-                            let i = inner_func(maj_root, (min_root + minor) % 9);
-                            let mut cell = grid[i].write().unwrap();
-                            if cell.value == -1 && cell.possible & uniq != 0 {
-                                //cell.possible &= !uniq;
-                                //cell.check_possible();
-                                changed = true;
-                                println!(
-                                    "----- changed ({}, {}) i:{}",
-                                    maj_root, (min_root + minor) % 9, i);
+                        // some unique possibles in this inner segment
+                        for iter in 1..3 {
+                            // go through the other two inner segments
+                            let outer_offset = outer_func(
+                                    outer_maj * 3 + ((outer_min + iter) % 3),
+                                    0);
+                            for minor in 0..3 {
+                                // 3 cells in each inner segment
+                                let i = outer_offset + inner_func(major, minor);
+                                let mut cell = grid[i].write().unwrap();
+                                if cell.value == -1
+                                    && (cell.possible & uniq) != 0 {
+                                    cell.possible &= !uniq;
+                                    cell.check_possible();
+                                    changed = true;
+                                }
                             }
                         }
                     }

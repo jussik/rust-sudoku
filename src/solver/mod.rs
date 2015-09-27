@@ -23,6 +23,12 @@ pub fn box_loc(major: usize, minor: usize) -> usize {
         + (minor % 3)
         + (minor / 3) * 9
 }
+pub fn inv_box_loc(major: usize, minor: usize) -> usize {
+    (major % 3) * 27
+        + (major / 3) * 3
+        + (minor % 3) * 9
+        + (minor / 3)
+}
 
 /// Start a number of solvers in threads and pass them cloned arguments
 ///
@@ -127,13 +133,13 @@ impl Solver {
                 simple::rows(args.clone());
                 simple::columns(args.clone());
                 simple::boxes(args.clone());
-                //hidden::rows(args.clone());
-                //hidden::columns(args.clone());
-                //hidden::boxes(args.clone());
+                hidden::rows(args.clone());
+                hidden::columns(args.clone());
+                hidden::boxes(args.clone());
                 locked::rows(args.clone());
-                //locked::columns(args.clone());
-                //locked::box_rows(args.clone());
-                //locked::col_rows(args.clone());
+                locked::columns(args.clone());
+                locked::box_rows(args.clone());
+                locked::col_rows(args.clone());
 
                 done = true;
                 for i in 0..81 {
@@ -148,10 +154,9 @@ impl Solver {
                 }
 
                 let mut changed = false;
-                for _ in 0..4 {
+                for _ in 0..10 {
                     changed |= rx.recv().unwrap();
                 }
-                break;
                 if !changed {
                     println!("gave up after {} iterations", i);
                     break;
