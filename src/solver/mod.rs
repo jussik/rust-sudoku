@@ -140,7 +140,7 @@ impl Solver {
                 locked::rows(args.clone());
                 locked::columns(args.clone());
                 locked::box_rows(args.clone());
-                locked::col_rows(args.clone());
+                locked::box_cols(args.clone());
                 naked::rows(args.clone());
                 naked::columns(args.clone());
                 naked::boxes(args.clone());

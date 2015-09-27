@@ -11,7 +11,7 @@ pub fn columns(args: SolverArgs) {
 pub fn box_rows(args: SolverArgs) {
     run(args, row_loc, box_loc);
 }
-pub fn col_rows(args: SolverArgs) {
+pub fn box_cols(args: SolverArgs) {
     run(args, col_loc, inv_box_loc);
 }
 
