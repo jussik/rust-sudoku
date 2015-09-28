@@ -5,24 +5,24 @@ use std::thread;
 //use rand;
 //use rand::{XorShiftRng,Rng};
 
-pub fn rows(args: SolverArgs) {
+pub fn rows(args: &SolverArgs) {
     run(args, row_loc);
 }
-pub fn columns(args: SolverArgs) {
+pub fn columns(args: &SolverArgs) {
     run(args, col_loc);
 }
-pub fn boxes(args: SolverArgs) {
+pub fn boxes(args: &SolverArgs) {
     run(args, box_loc);
 }
 
-fn run(args: SolverArgs, func: LocFn) {
+fn run(args: &SolverArgs, func: LocFn) {
     /*let mut rng: XorShiftRng = rand::random();
     let mut ix_major: [usize; 9] = [0; 9];
     for i in 0..9 { ix_major[i] = i; }
     rng.shuffle(&mut ix_major);*/
-    let grid = args.cells;
-    let tx = args.tx;
-    let is_done = args.is_done;
+    let grid = &args.cells;
+    let tx = &args.tx;
+    let is_done = &args.is_done;
 
     let mut poss: [u16; 9] = [0; 9];
     loop {

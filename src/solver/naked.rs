@@ -2,20 +2,20 @@ use super::*;
 
 use std::thread;
 
-pub fn rows(args: SolverArgs) {
+pub fn rows(args: &SolverArgs) {
     run(args, row_loc);
 }
-pub fn columns(args: SolverArgs) {
+pub fn columns(args: &SolverArgs) {
     run(args, col_loc);
 }
-pub fn boxes(args: SolverArgs) {
+pub fn boxes(args: &SolverArgs) {
     run(args, box_loc);
 }
 
-fn run(args: SolverArgs, func: LocFn) {
-    let grid = args.cells;
-    let tx = args.tx;
-    let is_done = args.is_done;
+fn run(args: &SolverArgs, func: LocFn) {
+    let grid = &args.cells;
+    let tx = &args.tx;
+    let is_done = &args.is_done;
     // store index and possibles for each non-value cell in each segment
     let mut poss: [(usize, u16); 9] = [(0, 0); 9];
     loop {

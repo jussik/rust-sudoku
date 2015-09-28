@@ -6,22 +6,22 @@ use std::thread;
 //use rand::{XorShiftRng,Rng};
 
 /// Remove possible values based on cells in the same row
-pub fn rows(args: SolverArgs) {
+pub fn rows(args: &SolverArgs) {
     run(args, row_loc);
 }
 
 /// Remove possible values based on cells in the same column
-pub fn columns(args: SolverArgs) {
+pub fn columns(args: &SolverArgs) {
     run(args, col_loc);
 }
 
 /// Remove possible values based on cells in the same 3x3 box
-pub fn boxes(args: SolverArgs) {
+pub fn boxes(args: &SolverArgs) {
     run(args, box_loc);
 }
 
 /// Remove possibilities based on adjacent values
-fn run(args: SolverArgs, func: LocFn) {
+fn run(args: &SolverArgs, func: LocFn) {
     // randomise walk order to minimise successive waits for other threads
     /*let mut rng: XorShiftRng = rand::random();
 
@@ -32,9 +32,9 @@ fn run(args: SolverArgs, func: LocFn) {
     let mut ix_minor: [usize; 8] = [0; 8];
     for i in 0..8 { ix_minor[i] = i; }
     rng.shuffle(&mut ix_minor);*/
-    let grid = args.cells;
-    let tx = args.tx;
-    let is_done = args.is_done;
+    let grid = &args.cells;
+    let tx = &args.tx;
+    let is_done = &args.is_done;
 
     loop {
         let mut changed = false;

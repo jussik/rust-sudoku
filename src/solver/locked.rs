@@ -2,23 +2,23 @@ use super::*;
 
 use std::thread;
 
-pub fn rows(args: SolverArgs) {
+pub fn rows(args: &SolverArgs) {
     run(args, box_loc, row_loc);
 }
-pub fn columns(args: SolverArgs) {
+pub fn columns(args: &SolverArgs) {
     run(args, inv_box_loc, col_loc);
 }
-pub fn box_rows(args: SolverArgs) {
+pub fn box_rows(args: &SolverArgs) {
     run(args, row_loc, box_loc);
 }
-pub fn box_cols(args: SolverArgs) {
+pub fn box_cols(args: &SolverArgs) {
     run(args, col_loc, inv_box_loc);
 }
 
-fn run(args: SolverArgs, outer_func: LocFn, inner_func: LocFn) {
-    let grid = args.cells;
-    let tx = args.tx;
-    let is_done = args.is_done;
+fn run(args: &SolverArgs, outer_func: LocFn, inner_func: LocFn) {
+    let grid = &args.cells;
+    let tx = &args.tx;
+    let is_done = &args.is_done;
     let mut changed = false;
     loop {
         for outer_maj in 0..3 {

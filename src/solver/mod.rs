@@ -6,7 +6,7 @@ pub mod naked;
 use std::thread;
 use std::vec::Vec;
 use std::sync::{Arc, RwLock};
-use std::sync::mpsc::{channel, Sender};
+use std::sync::mpsc::{channel, Sender, Receiver};
 
 use ::grid::Cell;
 
@@ -54,7 +54,7 @@ macro_rules! start_solvers {
      ) => {{
         $( let $arg = $arg.clone(); )*
         $handles.push(thread::spawn(move || {
-            $func($($arg),*);
+            $func(&$($arg),*);
         }));
     }};
 }
@@ -130,43 +130,7 @@ impl Solver {
                 let mut d = args.is_done.write().unwrap();
                 *d = true;
             }
-            for i in 1..100 {
-                simple::rows(args.clone());
-                simple::columns(args.clone());
-                simple::boxes(args.clone());
-                hidden::rows(args.clone());
-                hidden::columns(args.clone());
-                hidden::boxes(args.clone());
-                locked::rows(args.clone());
-                locked::columns(args.clone());
-                locked::box_rows(args.clone());
-                locked::box_cols(args.clone());
-                naked::rows(args.clone());
-                naked::columns(args.clone());
-                naked::boxes(args.clone());
-
-                done = true;
-                for i in 0..81 {
-                    if args.cells[i].read().unwrap().value == -1 {
-                        done = false;
-                        break;
-                    }
-                }
-                if done {
-                    println!("solved after {} iterations", i);
-                    break;
-                }
-
-                let mut changed = false;
-                for _ in 0..13 {
-                    changed |= rx.recv().unwrap();
-                }
-                //break;
-                if !changed {
-                    println!("gave up after {} iterations", i);
-                    break;
-                }
-            }
+            done = self.solve_seq(&args, &rx);
         }
         for i in 0..81 {
             let cell = args.cells[i].read().unwrap();
@@ -174,4 +138,108 @@ impl Solver {
         }
         done
     }
+
+    fn solve_seq(&self, args: &SolverArgs, rx: &Receiver<bool>) -> bool {
+        let mut done = false;
+        for i in 1..100 {
+            simple::rows(&args);
+            simple::columns(&args);
+            simple::boxes(&args);
+            hidden::rows(&args);
+            hidden::columns(&args);
+            hidden::boxes(&args);
+            locked::rows(&args);
+            locked::columns(&args);
+            locked::box_rows(&args);
+            locked::box_cols(&args);
+            naked::rows(&args);
+            naked::columns(&args);
+            naked::boxes(&args);
+
+            done = true;
+            for i in 0..81 {
+                if args.cells[i].read().unwrap().value == -1 {
+                    done = false;
+                    break;
+                }
+            }
+            if done {
+                //println!("solved after {} iterations", i);
+                break;
+            }
+
+            let mut changed = false;
+            for _ in 0..13 {
+                changed |= rx.recv().unwrap();
+            }
+            if !changed {
+                //println!("gave up after {} iterations, guessing", i);
+                // find cell with least possibilities and guess a value
+                loop {
+                    // (index, possibles, possible count)
+                    let mut best: (usize, u16, u16) = (0, 0, 10);
+                    for c in 0..81 {
+                        let cell: Cell;
+                        {
+                            cell = *args.cells[c].read().unwrap();
+                        }
+                        if cell.value == -1 {
+                            let count = cell.possible.count_ones() as u16;
+                            if count < best.2 {
+                                best = (c, cell.possible, count);
+                                if count == 2 {
+                                    break; // can't do better than 2
+                                }
+                            }
+                        }
+                    }
+                    for v in 0..9 {
+                        // check each value in bitfield, is there a better way?
+                        if best.1 & VALS[v] != 0 {
+                            let new_args = SolverArgs {
+                                cells: args.cells.iter()
+                                    .map(|arc| {
+                                        // need to copy cell data
+                                        let cell = *arc.read().unwrap();
+                                        Arc::new(RwLock::new(cell))
+                                    })
+                                    .collect::<Vec<_>>(),
+                                tx: args.tx.clone(),
+                                is_done: args.is_done.clone()
+                            };
+                            {
+                                let mut cell = new_args.cells[best.0]
+                                    .write().unwrap();
+                                cell.value = v as i8;
+                                cell.possible = 1 << v;
+                            }
+                            if self.solve_seq(&new_args, &rx) {
+                                for i in 0..81 {
+                                    let src = *new_args.cells[i].read().unwrap();
+                                    let mut dst = args.cells[i].write().unwrap();
+                                    dst.value = src.value;
+                                    dst.possible = src.possible;
+                                }
+                                return true;
+                            }
+                            //println!("guessed incorrectly");
+                        }
+                    }
+                }
+            }
+        }
+        done
+    }
 }
+
+static VALS: [u16; 9] = [
+    0x001,
+    0x002,
+    0x004,
+    0x008,
+    0x010,
+    0x020,
+    0x040,
+    0x080,
+    0x100,
+];

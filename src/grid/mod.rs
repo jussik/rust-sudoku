@@ -75,7 +75,8 @@ impl Grid {
             let mut g2 = self.clone();
             let solver = Solver::new(false);
             solver.solve_mut(&mut g2.values);
-            if self.valid {
+            if g2.valid {
+                g2.solved = true;
                 return Some(g2);
             }
         }
