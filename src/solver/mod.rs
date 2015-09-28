@@ -130,7 +130,7 @@ impl Solver {
                 let mut d = args.is_done.write().unwrap();
                 *d = true;
             }
-            done = self.solve_seq(&args, &rx);
+            done = self.solve_seq(&args, &rx, 0);
         }
         for i in 0..81 {
             let cell = args.cells[i].read().unwrap();
@@ -139,9 +139,8 @@ impl Solver {
         done
     }
 
-    fn solve_seq(&self, args: &SolverArgs, rx: &Receiver<bool>) -> bool {
-        let mut done = false;
-        for i in 1..100 {
+    fn solve_seq(&self, args: &SolverArgs, rx: &Receiver<bool>, depth: u32) -> bool {
+        for _ in 0..100 {
             simple::rows(&args);
             simple::columns(&args);
             simple::boxes(&args);
@@ -156,16 +155,30 @@ impl Solver {
             naked::columns(&args);
             naked::boxes(&args);
 
-            done = true;
-            for i in 0..81 {
-                if args.cells[i].read().unwrap().value == -1 {
-                    done = false;
-                    break;
+            let mut done = true;
+            for major in 0..9 {
+                let mut vals: [u16; 3] = [0; 3];
+                for minor in 0..9 {
+                    for f in 0..3 {
+                        let i = CHECK_FUNCS[f](major, minor);
+                        let cell = *args.cells[i].read().unwrap();
+                        if cell.value == -1 {
+                            if cell.possible == 0 {
+                                return false;
+                            }
+                            done = false;
+                        } else {
+                            let val_bit = 1 << cell.value;
+                            if (vals[f] & val_bit) != 0 {
+                                return false;
+                            }
+                            vals[f] |= val_bit;
+                        }
+                    }
                 }
             }
             if done {
-                //println!("solved after {} iterations", i);
-                break;
+                return true;
             }
 
             let mut changed = false;
@@ -173,64 +186,64 @@ impl Solver {
                 changed |= rx.recv().unwrap();
             }
             if !changed {
-                //println!("gave up after {} iterations, guessing", i);
-                // find cell with least possibilities and guess a value
-                loop {
-                    // (index, possibles, possible count)
-                    let mut best: (usize, u16, u16) = (0, 0, 10);
-                    for c in 0..81 {
-                        let cell: Cell;
-                        {
-                            cell = *args.cells[c].read().unwrap();
-                        }
-                        if cell.value == -1 {
-                            let count = cell.possible.count_ones() as u16;
-                            if count < best.2 {
-                                best = (c, cell.possible, count);
-                                if count == 2 {
-                                    break; // can't do better than 2
-                                }
-                            }
-                        }
-                    }
-                    for v in 0..9 {
-                        // check each value in bitfield, is there a better way?
-                        if best.1 & VALS[v] != 0 {
-                            let new_args = SolverArgs {
-                                cells: args.cells.iter()
-                                    .map(|arc| {
-                                        // need to copy cell data
-                                        let cell = *arc.read().unwrap();
-                                        Arc::new(RwLock::new(cell))
-                                    })
+                return self.guess(&args, &rx, depth);
+            }
+        }
+        println!("reached 100 iterations");
+        true
+    }
+
+    fn guess(&self, args: &SolverArgs, rx: &Receiver<bool>, depth: u32) -> bool  {
+        for poss in 2..10 { // find cells with least possibles first
+            for c in 0..81 {
+                let cell: Cell;
+                {
+                    cell = *args.cells[c].read().unwrap();
+                }
+                if cell.value == -1 {
+                    let count = cell.possible.count_ones() as u16;
+                    if count == poss {
+                        for v in 0..9 {
+                            // check each value in bitfield, is there a better way?
+                            if cell.possible & VALS[v] != 0 {
+                                println!("{}: {},{} ({})", depth, c, v, poss);
+                                let new_args = SolverArgs {
+                                    cells: args.cells.iter()
+                                        .map(|arc| {
+                                            // need to copy cell data
+                                            let cell = *arc.read().unwrap();
+                                            Arc::new(RwLock::new(cell))
+                                        })
                                     .collect::<Vec<_>>(),
-                                tx: args.tx.clone(),
-                                is_done: args.is_done.clone()
-                            };
-                            {
-                                let mut cell = new_args.cells[best.0]
-                                    .write().unwrap();
-                                cell.value = v as i8;
-                                cell.possible = 1 << v;
-                            }
-                            if self.solve_seq(&new_args, &rx) {
-                                for i in 0..81 {
-                                    let src = *new_args.cells[i].read().unwrap();
-                                    let mut dst = args.cells[i].write().unwrap();
-                                    dst.value = src.value;
-                                    dst.possible = src.possible;
+                                    tx: args.tx.clone(),
+                                    is_done: args.is_done.clone()
+                                };
+                                {
+                                    let mut cell = new_args.cells[c]
+                                        .write().unwrap();
+                                    cell.value = v as i8;
+                                    cell.possible = 1 << v;
                                 }
-                                return true;
+                                if self.solve_seq(&new_args, &rx, depth + 1) {
+                                    for i in 0..81 {
+                                        let src = *new_args.cells[i].read().unwrap();
+                                        let mut dst = args.cells[i].write().unwrap();
+                                        dst.value = src.value;
+                                        dst.possible = src.possible;
+                                    }
+                                    return true;
+                                }
                             }
-                            //println!("guessed incorrectly");
                         }
                     }
                 }
             }
         }
-        done
+        return false;
     }
 }
+
+static CHECK_FUNCS: [LocFn; 3] = [row_loc, col_loc, box_loc];
 
 static VALS: [u16; 9] = [
     0x001,
