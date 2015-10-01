@@ -105,6 +105,7 @@ impl Solver {
                     let mut v = 0;
                     if p.count_ones() == poss {
                         while p != 0 {
+                            // check next LSB of possibles
                             if p & 1 != 0 {
                                 let mut new_cells = *cells;
                                 {
@@ -117,6 +118,7 @@ impl Solver {
                                     return true;
                                 }
                             }
+                            // remove LSB from possibles
                             p = p >> 1;
                             v += 1;
                         }
