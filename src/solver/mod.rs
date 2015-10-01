@@ -206,7 +206,6 @@ impl Solver {
                         for v in 0..9 {
                             // check each value in bitfield, is there a better way?
                             if cell.possible & VALS[v] != 0 {
-                                println!("{}: {},{} ({})", depth, c, v, poss);
                                 let new_args = SolverArgs {
                                     cells: args.cells.iter()
                                         .map(|arc| {
@@ -235,6 +234,7 @@ impl Solver {
                                 }
                             }
                         }
+                        return false;
                     }
                 }
             }
