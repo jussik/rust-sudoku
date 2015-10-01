@@ -140,7 +140,7 @@ impl Solver {
     }
 
     fn solve_seq(&self, args: &SolverArgs, rx: &Receiver<bool>, depth: u32) -> bool {
-        for _ in 0..100 {
+        loop {
             simple::rows(&args);
             simple::columns(&args);
             simple::boxes(&args);
@@ -189,8 +189,6 @@ impl Solver {
                 return self.guess(&args, &rx, depth);
             }
         }
-        println!("reached 100 iterations");
-        true
     }
 
     fn guess(&self, args: &SolverArgs, rx: &Receiver<bool>, depth: u32) -> bool  {
@@ -239,7 +237,7 @@ impl Solver {
                 }
             }
         }
-        return false;
+        false
     }
 }
 
