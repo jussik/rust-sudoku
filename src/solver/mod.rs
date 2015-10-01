@@ -26,6 +26,34 @@ pub fn inv_box_loc(major: usize, minor: usize) -> usize {
         + (minor / 3)
 }
 
+macro_rules! check_pass {
+    (
+        $cells:ident,
+        [ $($func:ident:$id:expr),+ ]
+        ( $major:ident, $minor:ident )
+        -> $vals:ident, $done:ident
+    ) => {{
+        $(
+            let i = $func($major, $minor);
+            let cell = $cells[i];
+            if cell.value == -1 {
+                if cell.possible == 0 {
+                    // no possible values
+                    return false;
+                }
+                $done = false;
+            } else {
+                let val_bit = 1 << cell.value;
+                if ($vals[$id] & val_bit) != 0 {
+                    // duplicate value
+                    return false;
+                }
+                $vals[$id] |= val_bit;
+            }
+        )+
+    }}
+}
+
 pub struct Solver;
 
 impl Solver {
@@ -47,28 +75,14 @@ impl Solver {
             changed |= naked::columns(cells);
             changed |= naked::boxes(cells);
 
+            // check if grid is solved or invalid
             let mut done = true;
             for major in 0..9 {
                 let mut vals: [u16; 3] = [0; 3];
                 for minor in 0..9 {
-                    for f in 0..3 {
-                        let i = CHECK_FUNCS[f](major, minor);
-                        let cell = cells[i];
-                        if cell.value == -1 {
-                            if cell.possible == 0 {
-                                // no possible values
-                                return false;
-                            }
-                            done = false;
-                        } else {
-                            let val_bit = 1 << cell.value;
-                            if (vals[f] & val_bit) != 0 {
-                                // duplicate value
-                                return false;
-                            }
-                            vals[f] |= val_bit;
-                        }
-                    }
+                    check_pass!(cells,
+                        [row_loc:0, col_loc:1, box_loc:2](major, minor)
+                        -> vals, done);
                 }
             }
             if done {
@@ -84,9 +98,11 @@ impl Solver {
             for c in 0..81 {
                 let cell = cells[c];
                 if cell.value == -1 {
-                    if cell.possible.count_ones() == poss {
-                        for v in 0..9 {
-                            if cell.possible & VALS[v] != 0 {
+                    let mut p = cell.possible;
+                    let mut v = 0;
+                    if p.count_ones() == poss {
+                        while p != 0 {
+                            if p & 1 != 0 {
                                 let mut new_cells = *cells;
                                 {
                                     let mut cell = &mut new_cells[c];
@@ -98,6 +114,8 @@ impl Solver {
                                     return true;
                                 }
                             }
+                            p = p >> 1;
+                            v += 1;
                         }
                         return false;
                     }
@@ -107,17 +125,3 @@ impl Solver {
         false
     }
 }
-
-static CHECK_FUNCS: [LocFn; 3] = [row_loc, col_loc, box_loc];
-
-static VALS: [u16; 9] = [
-    0x001,
-    0x002,
-    0x004,
-    0x008,
-    0x010,
-    0x020,
-    0x040,
-    0x080,
-    0x100,
-];
