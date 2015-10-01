@@ -32,6 +32,7 @@ impl Solver {
     /// Solve the puzzle in place, returns `true` if successful
     pub fn solve_mut(&self, cells: &mut [Cell; 81]) -> bool {
         loop {
+            // all solvers are run because of non-short circuiting OR-operator
             let mut changed = false;
             changed |= simple::rows(cells);
             changed |= simple::columns(cells);
@@ -56,12 +57,14 @@ impl Solver {
                         let cell = cells[i];
                         if cell.value == -1 {
                             if cell.possible == 0 {
+                                // no possible values
                                 return false;
                             }
                             done = false;
                         } else {
                             let val_bit = 1 << cell.value;
                             if (vals[f] & val_bit) != 0 {
+                                // duplicate value
                                 return false;
                             }
                             vals[f] |= val_bit;
@@ -82,31 +85,17 @@ impl Solver {
             for c in 0..81 {
                 let cell = cells[c];
                 if cell.value == -1 {
-                    let count = cell.possible.count_ones() as u16;
-                    if count == poss {
+                    if cell.possible.count_ones() == poss {
                         for v in 0..9 {
                             if cell.possible & VALS[v] != 0 {
-                                let mut new_cells: [Cell; 81] = [Cell {
-                                    value: 0,
-                                    possible: 0
-                                }; 81];
+                                let mut new_cells = *cells;
                                 {
-                                    for i in 0..81 {
-                                        // TODO: faster copy
-                                        new_cells[i] = cells[i];
-                                    }
                                     let mut cell = &mut new_cells[c];
                                     cell.value = v as i8;
                                     cell.possible = 1 << v;
                                 }
                                 if self.solve_mut(&mut new_cells) {
-                                    // TODO: faster copy
-                                    for i in 0..81 {
-                                        let src = new_cells[i];
-                                        let mut dst = &mut cells[i];
-                                        dst.value = src.value;
-                                        dst.possible = src.possible;
-                                    }
+                                    *cells = new_cells;
                                     return true;
                                 }
                             }
