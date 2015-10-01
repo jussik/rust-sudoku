@@ -29,16 +29,19 @@ macro_rules! run {
 }
 
 /// Remove possible values based on cells in the same row
+#[inline]
 pub fn rows(cells: &mut [Cell; 81]) -> bool {
     run!(cells, row_loc)
 }
 
 /// Remove possible values based on cells in the same column
+#[inline]
 pub fn columns(cells: &mut [Cell; 81]) -> bool {
     run!(cells, col_loc)
 }
 
 /// Remove possible values based on cells in the same 3x3 box
+#[inline]
 pub fn boxes(cells: &mut [Cell; 81]) -> bool {
     run!(cells, box_loc)
 }

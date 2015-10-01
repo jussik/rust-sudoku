@@ -5,18 +5,22 @@ pub mod naked;
 
 use ::grid::Cell;
 
+#[inline]
 pub fn row_loc(major: usize, minor: usize) -> usize {
     major * 9 + minor
 }
+#[inline]
 pub fn col_loc(major: usize, minor: usize) -> usize {
     minor * 9 + major
 }
+#[inline]
 pub fn box_loc(major: usize, minor: usize) -> usize {
     (major % 3) * 3
         + (major / 3) * 27
         + (minor % 3)
         + (minor / 3) * 9
 }
+#[inline]
 pub fn inv_box_loc(major: usize, minor: usize) -> usize {
     (major % 3) * 27
         + (major / 3) * 3
@@ -91,6 +95,7 @@ impl Solver {
         }
     }
 
+    #[inline]
     fn guess(&self, cells: &mut [Cell; 81]) -> bool  {
         for poss in 2..10 { // find cells with least possibles first
             for c in 0..81 {

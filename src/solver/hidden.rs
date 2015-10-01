@@ -42,12 +42,15 @@ macro_rules! run {
     }}
 }
 
+#[inline]
 pub fn rows(cells: &mut [Cell;  81]) -> bool {
     run!(cells, row_loc)
 }
+#[inline]
 pub fn columns(cells: &mut [Cell;  81]) -> bool {
     run!(cells, col_loc)
 }
+#[inline]
 pub fn boxes(cells: &mut [Cell;  81]) -> bool {
     run!(cells, box_loc)
 }
