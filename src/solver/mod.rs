@@ -32,7 +32,6 @@ impl Solver {
     /// Solve the puzzle in place, returns `true` if successful
     pub fn solve_mut(&self, cells: &mut [Cell; 81]) -> bool {
         loop {
-            // all solvers are run because of non-short circuiting OR-operator
             let mut changed = false;
             changed |= simple::rows(cells);
             changed |= simple::columns(cells);
