@@ -5,8 +5,6 @@ pub mod naked;
 
 use ::grid::Cell;
 
-pub type LocFn = fn(usize, usize) -> usize;
-
 pub fn row_loc(major: usize, minor: usize) -> usize {
     major * 9 + minor
 }
