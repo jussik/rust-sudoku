@@ -33,19 +33,19 @@ impl Solver {
     pub fn solve_mut(&self, cells: &mut [Cell; 81]) -> bool {
         loop {
             let mut changed = false;
-            changed |= simple::rows(cells)
-                || simple::columns(cells)
-                || simple::boxes(cells)
-                || hidden::rows(cells)
-                || hidden::columns(cells)
-                || hidden::boxes(cells)
-                || locked::rows(cells)
-                || locked::columns(cells)
-                || locked::box_rows(cells)
-                || locked::box_cols(cells)
-                || naked::rows(cells)
-                || naked::columns(cells)
-                || naked::boxes(cells);
+            changed |= simple::rows(cells);
+            changed |= simple::columns(cells);
+            changed |= simple::boxes(cells);
+            changed |= hidden::rows(cells);
+            changed |= hidden::columns(cells);
+            changed |= hidden::boxes(cells);
+            changed |= locked::rows(cells);
+            changed |= locked::columns(cells);
+            changed |= locked::box_rows(cells);
+            changed |= locked::box_cols(cells);
+            changed |= naked::rows(cells);
+            changed |= naked::columns(cells);
+            changed |= naked::boxes(cells);
 
             let mut done = true;
             for major in 0..9 {
