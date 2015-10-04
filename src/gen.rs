@@ -1,4 +1,5 @@
 use ::grid::Grid;
+use ::solver::Solver;
 
 use rand;
 use rand::{XorShiftRng,Rng};
@@ -32,18 +33,18 @@ impl Generator {
     pub fn generate(&mut self) -> Grid {
         let mut vals = self.gen_values();
         let mut range = Range::new(0,81);
-        let mut prev = Grid::load(&vals);
+        let mut prev = vals;
         loop {
             let i = range.sample(&mut self.rng);
             if vals[i] == -1 {
                 continue;
             }
             vals[i] = -1;
-            let grid = Grid::load(&vals);
-            if !grid.solve().map_or(false, |g| g.solved) {
-                return prev;
+            let solver = Solver { allow_guessing: false };
+            if !solver.solve_values(&vals) {
+                return Grid::load(&prev);
             }
-            prev = grid;
+            prev = vals;
         }
     }
 

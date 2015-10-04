@@ -56,9 +56,26 @@ macro_rules! check_pass {
     }}
 }
 
-pub struct Solver;
+pub struct Solver {
+    pub allow_guessing: bool
+}
 
 impl Solver {
+    pub fn solve_values(&self, values: &[i8; 81]) -> bool {
+        let mut cells = [Cell {
+            value: -1,
+            possible: (1 << 9) - 1
+        }; 81];
+        for i in 0..81 {
+            let v = values[i];
+            if v != -1 {
+                cells[i].value = v;
+                cells[i].possible = 1 << v;
+            }
+        }
+        self.solve_mut(&mut cells)
+    }
+
     /// Solve the puzzle in place, returns `true` if successful
     pub fn solve_mut(&self, cells: &mut [Cell; 81]) -> bool {
         loop {
@@ -90,7 +107,11 @@ impl Solver {
             if done {
                 return true;
             } else if !changed {
-                return self.guess(cells);
+                return if self.allow_guessing {
+                    self.guess(cells)
+                } else {
+                    false
+                }
             }
         }
     }
