@@ -25,13 +25,13 @@ impl Grid {
     ///
     /// Values are read in row-major order
     /// All non-digit characters are ignored
-    /// 0 implies the value is unknown
+    /// 0 or . implies the value is unknown
     /// If less than 81 values are found, the remainder are unknown
     /// Values after the 81st are ignored
     pub fn parse(input: &str) -> Grid {
         let mut g = Grid::new();
         for (i, d) in input.chars()
-            .filter_map(move |c| c.to_digit(10))
+            .filter_map(move |c| if c == '.' { Some(0) } else { c.to_digit(10) })
             .take(81)
             .enumerate() {
                 if d != 0 {

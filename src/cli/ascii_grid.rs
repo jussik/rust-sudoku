@@ -37,7 +37,7 @@ pub fn create_large(grid: &Grid) -> String {
         grid: grid,
         buf: String::with_capacity(2811)
     };
-    for i in (0..9) {
+    for i in 0..9 {
         printer.divider(i);
         printer.row(i);
     }
@@ -53,11 +53,11 @@ impl<'a> GridPrinter<'a> {
     fn row(&mut self, row: usize) {
         self.buf.push('\n');
         let rx = row * 9;
-        for r in (0..3) {
-            for b in (0..3) {
+        for r in 0..3 {
+            for b in 0..3 {
                 let bx = b * 3 + rx;
                 self.buf.push('|');
-                for c in (0..3) {
+                for c in 0..3 {
                     let cell = self.grid.values[bx + c];
                     self.cell_row(&cell, r as u32);
                 }
@@ -68,7 +68,7 @@ impl<'a> GridPrinter<'a> {
     fn cell_row(&mut self, cell: &Cell, r: u32) {
         if cell.value == -1 {
             let x = r * 3;
-            for i in (0..3) {
+            for i in 0..3 {
                 self.buf.push(' ');
                 let mut num = i + x as i8;
                 num = if cell.is_possible(num) { num } else { -1 };

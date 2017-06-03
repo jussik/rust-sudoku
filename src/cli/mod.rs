@@ -55,22 +55,9 @@ const HARDEST: &'static str = "\
 008|500|010\
 090|000|400";
 
-const EMPTY: &'static str = "\
-000|000|000\
-000|000|000\
-000|000|000\
-
-000|000|000\
-000|000|000\
-000|000|000\
-
-000|000|000\
-000|000|000\
-000|000|000";
-
 pub fn run() {
-    //let grid = Grid::parse(HARDEST);
-    let grid = Generator::random().generate();
+    let grid = Grid::parse(HARDEST);
+    //let grid = Generator::random().generate();
     println!("{}\n", ascii_grid::create(&grid));
     match grid.solve() {
         Some(grid) => {
