@@ -45,6 +45,14 @@ pub fn create_large(grid: &Grid) -> String {
     printer.buf
 }
 
+pub fn create_oneline(grid: &Grid) -> String {
+    let mut buf = String::with_capacity(82);
+    for v in grid.values.iter() {
+        buf.push(number(v.value));
+    }
+    buf
+}
+
 struct GridPrinter<'a> {
     grid: &'a Grid,
     buf: String
